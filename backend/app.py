@@ -3,11 +3,14 @@ from config import Config
 from models import db, User, Trek, Booking
 from werkzeug.security import generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from flask_restful import Api
+from apis import api
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     db.init_app(app)
+    
     
     with app.app_context():
         db.create_all()
@@ -20,9 +23,9 @@ def create_app():
     
     return app
 app = create_app()
+api.init_app(app)
 
 if ( __name__ == '__main__'):
-    
     app.run(debug=True)
     
     
