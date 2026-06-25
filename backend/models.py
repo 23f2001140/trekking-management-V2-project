@@ -18,6 +18,16 @@ class User(db.Model):
     def __repr__(self):
         return f"<User {self.fullname}>"
     
+    def get_user(self):
+        return {'id': self.id, 
+                'email': self.email, 
+                'phone': self.phone, 
+                'fullname': self.fullname, 
+                'role': self.role, 
+                'is_blacklisted': self.is_blacklisted, 
+                'staff_status': self.staff_status
+                }
+    
 class Trek(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -37,6 +47,21 @@ class Trek(db.Model):
     def __repr__(self):
         return f"<Trek {self.name}>"
     
+    def get_trek(self):
+        return {'id': self.id, 
+                'name': self.name, 
+                'location': self.location, 
+                'difficulty': self.difficulty, 
+                'price': self.price, 
+                'description': self.description, 
+                'duration': self.duration, 
+                'available_slots': self.available_slots, 
+                'assigned_staff_id': self.assigned_staff_id, 
+                'start_date': self.start_date, 
+                'end_date': self.end_date, 
+                'status': self.status
+                }
+    
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -46,3 +71,11 @@ class Booking(db.Model):
     
     def __repr__(self):
         return f"<Booking {self.id}>"
+    
+    def get_booking(self):
+        return {'id': self.id, 
+                'user_id': self.user_id, 
+                'trek_id': self.trek_id, 
+                'booking_date': self.booking_date, 
+                'status': self.status
+                }

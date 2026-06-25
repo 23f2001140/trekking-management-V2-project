@@ -5,6 +5,8 @@ from werkzeug.security import generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
 from apis import api
+from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
@@ -23,7 +25,9 @@ def create_app():
     
     return app
 app = create_app()
+jwt = JWTManager(app)
 api.init_app(app)
+CORS(app)
 
 if ( __name__ == '__main__'):
     app.run(debug=True)
