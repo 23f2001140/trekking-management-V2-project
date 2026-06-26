@@ -70,7 +70,7 @@ async function registerUser() {
       router.push('/')} , 1000)
   }
   else {
-    showFlash(data.error, 'danger')
+    showFlash(data.message, 'danger')
   }
 }
 

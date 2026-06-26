@@ -28,9 +28,29 @@ const router = createRouter({
       component: () => import('../views/user/user_dashboard.vue'),
     },
     {
+      path: '/staff',
+      name: 'staff',
+      component: () => import('../views/staff/staff_dashboard.vue'),
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/admin/admin_dashboard.vue'),
+    },
+    {
+      path: '/admin/users',
+      name: 'admin_users',
+      component: () => import('../views/admin/admin_users.vue'),
+    },
+    {
+      path: '/admin/add_trek',
+      name: 'admin_add_trek',
+      component: () => import('../views/admin/admin_add_trek.vue'),
+    },
+    {
+      path: '/admin/staff',
+      name: 'admin_staff',
+      component: () => import('../views/admin/admin_staff.vue'),
     }
   ],
 })

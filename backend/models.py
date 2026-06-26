@@ -22,10 +22,8 @@ class User(db.Model):
         return {'id': self.id, 
                 'email': self.email, 
                 'phone': self.phone, 
-                'fullname': self.fullname, 
-                'role': self.role, 
-                'is_blacklisted': self.is_blacklisted, 
-                'staff_status': self.staff_status
+                'fullname': self.fullname,
+                'is_blacklisted': self.is_blacklisted
                 }
     
 class Trek(db.Model):

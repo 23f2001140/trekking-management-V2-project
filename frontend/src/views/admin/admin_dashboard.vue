@@ -1,3 +1,220 @@
+<script setup>
+import {ref , onMounted} from 'vue'
+import {RouterLink} from 'vue-router'
+import router from '../../router'
+
+const fullname = ref('')
+const treks = ref('')
+const users = ref('')
+const staff = ref('')
+const bookings = ref('')
+const flashMessage = ref('')
+const flashType = ref('')
+
+function showFlash(message, type) {
+
+  flashMessage.value = message
+  flashType.value = type
+
+  setTimeout(() => {
+    flashMessage.value = ''
+  }, 3000)
+}
+
+async function getAdminDashboard() {
+  const res = await fetch('http://127.0.0.1:5000/api/admin', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    fullname.value = data.name
+    treks.value = data.treks
+    users.value = data.user_count
+    staff.value = data.staff_count
+    bookings.value = data.bookings
+  }
+  else {
+    showFlash(data.message, 'danger')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setTimeout(() => {
+      router.push('/')
+    }, 1300)
+  }
+}
+
+onMounted(async () => {
+ await getAdminDashboard()
+})
+
+const semail = ref('')
+const sfullname = ref('')
+const sphone = ref('')
+const spassword = ref('')
+const scpassword = ref('')
+const smessage = ref('')
+const spmessage = ref('')
+
+const validateEmail = () => {
+    if (semail.value == '') {
+        smessage.value = ''
+    }
+    else if (!semail.value.includes('@') || !semail.value.includes('.')) {
+        smessage.value = 'Please enter a valid email address'
+    }
+    else {
+        smessage.value = ''
+    }
+}
+
+const validatePassword = () => {
+  if (spassword.value == '') {
+      spmessage.value = ''
+  }
+  else if (spassword.value.length < 6) {
+      spmessage.value = 'Password must be at least 6 characters long'
+  }
+  else {
+      spmessage.value = ''
+  }
+}
+
+async function AddStaff() {
+  if (spassword.value != scpassword.value) {
+    showFlash('Passwords do not match', 'danger')
+    return
+  }
+  const res= await fetch('http://127.0.0.1:5000/api/staff', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      email: semail.value,
+      password: spassword.value,
+      cpassword: scpassword.value,
+      fullname: sfullname.value,
+      phone: sphone.value,
+    }),
+  })
+  const data = await res.json()
+  if (res.ok) {
+    showFlash(data.message, 'success')
+    semail.value = ''
+    spassword.value = ''
+    scpassword.value = ''
+    sfullname.value = ''
+    sphone.value = ''
+    await getAdminDashboard()
+  }
+  else {
+    showFlash(data.message, 'danger')
+  }
+}
+</script>
+
 <template>
-    <h1>Admin Dashboard</h1>
+  <div v-if="flashMessage" :class="`alert alert-${flashType} position-fixed top-0 start-50 translate-middle-x mt-3`" style="z-index: 9999; min-width: 400px;">
+  {{ flashMessage }}
+</div>
+<h1><i class="fa-solid fa-gauge-high"></i> Dashboard
+<RouterLink to="/admin/add_trek" class="btn btn-success mt-2 float-end ms-2"><i class="fa-solid fa-plus"></i> New Trek </RouterLink>
+<button class="btn btn-success mt-2 float-end ms-2" data-bs-toggle="modal" data-bs-target="#addStaffModal"> <i class="fa-solid fa-user-plus"></i> Add Staff </button></h1>
+<p class="text-muted">Welcome, {{fullname }}!</p>
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-md">
+        <div class="modal-content">
+            <div class="modal-header text-white" style="background-color: #2c7a4b;">
+                <h1 class="modal-title fs-5" id="addStaffModalLabel"> <i class="fa-solid fa-user-plus"></i> Add New Staff </h1>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="AddStaff">
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Staff Email:</label>
+                    <input v-model="semail" type="email" id="email" name="email" class="form-control" @blur="validateEmail" required>
+                  </div>
+                  <div class="mb-3">
+                      <p class="text-danger" v-if="smessage">{{ smessage }}</p>
+                  </div>
+                  <div class="mb-3">
+                    <label for="fullname" class="form-label">Full Name:</label>
+                    <input v-model="sfullname" type="text" id="fullname" name="fullname" class="form-control" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number:</label>
+                    <input v-model="sphone" type="text" id="phone" name="phone" class="form-control" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="password" class="form-label">Password:</label>
+                    <input v-model="spassword" id="password" name="password" type="password" class="form-control" @input="validatePassword" required>
+                  </div>
+                  <div class="mb-3">
+                      <p class="text-danger" v-if="spmessage">{{ spmessage }}</p>
+                  </div>
+                  <div class="mb-3">
+                    <label for="cpassword" class="form-label">Confirm Password:</label>
+                    <input v-model="scpassword" id="cpassword" name="cpassword" type="password" class="form-control" required>
+                  </div>
+                  <br>
+                  <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Cancel </button>
+                    <button class="btn btn-success" type="submit"> Add Staff </button>
+                  </div>
+              </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mb-4 mt-4 d-flex justify-content-center align-items-center">
+  <div class="col-sm-3">
+    <div class="card text-bg-dark mb-3">
+      <RouterLink to="/admin" class="text-decoration-none text-white">
+        <div class="card-body">
+          <h5 class="card-title fa-solid fa-map"></h5>
+          <h2 class="card-text">{{treks}}</h2>
+          <h5 class="card-title"><strong>Total Treks</strong></h5>
+        </div>
+       </RouterLink>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-bg-success mb-3">
+      <RouterLink to="/admin/users" class="text-decoration-none text-white">
+        <div class="card-body">
+          <h5 class="card-title fa-solid fa-users"></h5>
+          <h2 class="card-text"><strong>{{ users }}</strong></h2>
+          <h5 class="card-title"><strong>Registered Users</strong></h5>
+        </div>
+    </RouterLink>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-bg-info mb-3">
+      <RouterLink to="/admin/staff" class="text-decoration-none text-dark">
+        <div class="card-body">
+          <h5 class="card-title fa-solid fa-users-gear"></h5>
+          <h2 class="card-text"><strong>{{ staff }}</strong></h2>
+          <h5 class="card-title"><strong>Trek Staff</strong></h5>
+        </div>
+    </RouterLink>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-bg-warning mb-3">
+      <RouterLink to="/admin" class="text-decoration-none text-dark">
+        <div class="card-body">
+          <h5 class="card-title fa-solid fa-list-check"> </h5>
+          <h2 class="card-text"><strong>{{ bookings }}</strong></h2>
+          <h5 class="card-title"><strong>Total Bookings</strong></h5>
+        </div>
+    </RouterLink>
+    </div>
+  </div>
+</div>
 </template>

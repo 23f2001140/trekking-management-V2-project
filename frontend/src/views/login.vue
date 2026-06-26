@@ -3,8 +3,8 @@ import { RouterLink } from 'vue-router'
 import router from '../router'
 import {ref} from 'vue'
 
-const password = ref('')
-const email = ref('')
+const password = ref('admin123')
+const email = ref('admin@gmail.com')
 const pmessage = ref('')
 const flashMessage = ref('')
 const flashType = ref('')
@@ -46,8 +46,11 @@ async function loginUser() {
     setTimeout(() => {
       localStorage.setItem('token', data.access_token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      if (data.user.role == 'admin') {
+      if (data.role == 'admin') {
         router.push('/admin')
+      }
+      else if (data.role == 'staff') {
+        router.push('/staff')
       }
       else {
         router.push('/user')
@@ -55,7 +58,7 @@ async function loginUser() {
     } , 1000)
   }
   else {
-    showFlash(data.error, 'danger')
+    showFlash(data.message, 'danger')
   }
 }
 </script>
