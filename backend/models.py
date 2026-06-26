@@ -10,7 +10,6 @@ class User(db.Model):
     fullname = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='user')
     is_blacklisted = db.Column(db.Boolean, nullable=False, default=False)
-    staff_status = db.Column(db.String(20), nullable=True, default='pending')
     
     bookings = db.relationship('Booking', backref='user', lazy=True)
     assigned_treks = db.relationship('Trek', backref='assigned_staff', lazy=True)
@@ -39,6 +38,7 @@ class Trek(db.Model):
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), nullable=False, default='Open')
+    image_url = db.Column(db.String(2000), nullable=True)
     
     bookings = db.relationship('Booking', backref='trek', lazy=True)    
     

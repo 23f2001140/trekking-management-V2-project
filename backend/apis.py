@@ -5,6 +5,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity , verify_jwt_in_request, get_jwt  
 from functools import wraps
+from datetime import datetime
 
 api = Api(prefix='/api')
 
@@ -40,7 +41,6 @@ def staff_required(f):
             return make_response(jsonify({'message': 'You are not authorized to access this resource'}), 401)
         return f(*args, **kwargs)
     return decorated
-
 
 
 class LoginApi(Resource):
@@ -95,6 +95,8 @@ class RegisterApi(Resource):
         return make_response(jsonify({'message': 'User created successfully'}), 201)
 api.add_resource(RegisterApi, '/register')
 
+
+
 class AdminDashboard(Resource):
     @admin_required
     def get(self):
@@ -135,11 +137,11 @@ class StaffAPI(Resource):
     @admin_required
     def post(self):
         data = request.get_json()
-        email = data['email']
-        password = data['password']
-        cpassword = data['cpassword']
-        fullname = data['fullname']
-        phone = data['phone']
+        email = data.get('email')
+        password = data.get('password')
+        cpassword = data.get('cpassword')
+        fullname = data.get('fullname')
+        phone = data.get('phone')
         if not data or not email or not password or not fullname or not phone or not cpassword:
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if password != cpassword:
@@ -159,3 +161,54 @@ class StaffAPI(Resource):
         db.session.commit()
         return make_response(jsonify({'message': 'Staff created successfully'}), 201)
 api.add_resource(StaffAPI, '/staff')
+
+class TrekAPI(Resource):
+    @admin_required
+    def get(self):
+        trek = Trek.query.all()
+        response = []
+        for t in trek:
+            response.append(t.get_trek())
+        return make_response(jsonify(response), 200)
+    @admin_required
+    def post(self):
+        data = request.get_json()
+        name = data.get('name')
+        location = data.get('location')
+        difficulty = data.get('difficulty')
+        price = data.get('price')
+        description = data.get('description')
+        available_slots = data.get('available_slots')
+        assigned_staff_id = data.get('assigned_staff_id')
+        start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+        status = data.get('status')
+        image_url = data.get('image_url')
+        if not data or not name or not location or not difficulty or not price or not description or not available_slots or not start_date or not end_date or not image_url:
+            return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
+        if price <= 0:
+            return make_response(jsonify({'message': 'Price should be greater than or equal to 0'}), 400)
+        if available_slots <= 0:
+            return make_response(jsonify({'message': 'Available Slots should be greater than or equal to 0'}), 400)
+        if assigned_staff_id and not status:
+            return make_response(jsonify({'message': 'You have to select trek status if you have assigned staff'}), 400)
+        if not assigned_staff_id and status:
+            return make_response(jsonify({'message': 'You can not select trek status if you have not assigned staff'}), 400)
+        if not assigned_staff_id:
+            assigned_staff_id = None
+            status = 'Pending'
+        
+        if start_date > end_date:
+            return make_response(jsonify({'message': 'Start Date should be earlier than End Date'}), 400)
+        
+        duration = (end_date - start_date).days
+        
+        
+        try:
+            trek = Trek(name=name, location=location, difficulty=difficulty, price=price, description=description, available_slots=available_slots, assigned_staff_id=assigned_staff_id, start_date=start_date, end_date=end_date, duration=duration, status=status, image_url=image_url)
+            db.session.add(trek)
+            db.session.commit()
+            return make_response(jsonify({'message': 'Trek created successfully'}), 201)
+        except:
+            return make_response(jsonify({'message': 'Something went wrong while creating trek'}), 500)
+api.add_resource(TrekAPI, '/trek')

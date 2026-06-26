@@ -1,5 +1,5 @@
 <script setup>
-import {ref , onMounted} from 'vue'
+import {ref , onMounted, watch} from 'vue'
 import {RouterLink} from 'vue-router'
 import router from '../../router'
 
@@ -55,9 +55,81 @@ onMounted(async () => {
  await getStaff()
 })
 
+watch(assigned_staff_id, (newValue) => {
+  if (newValue == '') {
+    status.value = ''
+  }
+})
+
+const validateDate = () => {
+  if (start_date.value > end_date.value) {
+    showFlash('Start Date should be earlier than End Date', 'danger')
+    end_date.value = ''
+  }
+}
+
+async function addTrek() {
+  if (name.value == '' || location.value == '' || difficulty.value == '' || price.value == '' || available_slots.value == '' || start_date.value == '' || end_date.value == '') {
+    showFlash('Please fill all the required fields', 'danger')
+    return
+  }
+  if (price.value < 0) {
+    showFlash('Price should be greater than 0', 'danger')
+    return
+  }
+  if (available_slots.value < 0) {
+    showFlash('Available Slots should be greater than 0', 'danger')
+    return
+  }
+  if (assigned_staff_id.value == '' && status.value != '') {
+    showFlash('You can not select trek status if you have not assigned staff', 'danger')
+    return
+  }
+  if (assigned_staff_id.value != '' && status.value == '') {
+    showFlash('You have to select trek status if you have assigned staff', 'danger')
+    return
+  }
+  const res= await fetch('http://127.0.0.1:5000/api/trek', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      name: name.value,
+      location: location.value,
+      difficulty: difficulty.value,
+      price: price.value,
+      description: description.value,
+      available_slots: available_slots.value,
+      assigned_staff_id: assigned_staff_id.value,
+      start_date: start_date.value,
+      end_date: end_date.value,
+      status: status.value,
+      image_url: image_url.value,
+    }),
+  })
+  const data = await res.json()
+  if (res.ok) {
+    showFlash(data.message, 'success')
+    setTimeout(() => {
+      router.push('/admin')
+    }, 2000)
+  }
+  else {
+    showFlash(data.message, 'danger')
+  }   
+}
+
+
+
+
 </script>
 
 <template>
+  <div v-if="flashMessage" :class="`alert alert-${flashType} position-fixed top-0 start-50 translate-middle-x mt-3`" style="z-index: 9999; min-width: 400px;">
+    {{ flashMessage }}
+  </div>
 <h1 class="text-center mt-4"> Add Trek <i class="fa-solid fa-cable-car"></i> </h1>
 <br>
 
@@ -85,7 +157,7 @@ onMounted(async () => {
 
   <div class="col-md-6">
     <label for="price" class="form-label"><strong>Price</strong></label>
-    <input v-model="price" type="number" class="form-control" id="price" required>
+    <input v-model="price" type="number" class="form-control" id="price" min="1" required>
   </div>
 
   <div class="col-md-6">
@@ -95,7 +167,7 @@ onMounted(async () => {
 
   <div class="col-md-6">
     <label for="available_slots" class="form-label"><strong>Available Slots</strong></label>
-    <input v-model="available_slots" type="number" class="form-control" id="available_slots" required>
+    <input v-model="available_slots" type="number" class="form-control" id="available_slots" min="1"c required>
   </div>
 
   <div class="col-md-6">
@@ -108,17 +180,17 @@ onMounted(async () => {
 
   <div class="col-md-3">
     <label for="start_date" class="form-label"><strong>Start Date</strong></label>
-    <input v-model="start_date" type="date" class="form-control" id="start_date" required>
+    <input v-model="start_date" type="date" class="form-control" id="start_date" @change="validateDate" required>
   </div>
 
   <div class="col-md-3">
     <label for="end_date" class="form-label"><strong>End Date</strong></label>
-    <input v-model="end_date" type="date" class="form-control" id="end_date" required>
+    <input v-model="end_date" type="date" class="form-control" id="end_date" :min="start_date" required>
   </div>
 
   <div class="col-md-6">
     <label for="status" class="form-label"><strong>Status</strong></label>
-    <select v-model="status" class="form-select" id="status">
+    <select v-model="status" class="form-select" id="status" :disabled="!assigned_staff_id" :required="assigned_staff_id" >
       <option value="">-- Select Status --</option>
       <option value="Approved">Approved</option>
       <option value="Open">Open</option>
@@ -135,11 +207,11 @@ onMounted(async () => {
   </div>
 
   <br>
-  <br>
-
   <div class="text-center mt-4">
     <button type="submit" class="btn btn-primary">Add Trek</button>
   </div>
+<br>
+<br>
 
 </form>
 </template>
