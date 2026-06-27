@@ -2,24 +2,16 @@
 import {ref , onMounted} from 'vue'
 import {RouterLink} from 'vue-router'
 import router from '../../router'
+import { useFlash } from '@/stores/flash'
+import { useAuth } from '@/stores/auth'
+const auth = useAuth()
+const flash = useFlash()
 
-const fullname = ref('')
+const fullname = auth.user?.fullname
 const treks = ref('')
 const users = ref('')
 const staff = ref('')
 const bookings = ref('')
-const flashMessage = ref('')
-const flashType = ref('')
-
-function showFlash(message, type) {
-
-  flashMessage.value = message
-  flashType.value = type
-
-  setTimeout(() => {
-    flashMessage.value = ''
-  }, 3000)
-}
 
 async function getAdminDashboard() {
   const res = await fetch('http://127.0.0.1:5000/api/admin', {
@@ -31,19 +23,15 @@ async function getAdminDashboard() {
   })
   const data = await res.json()
   if (res.ok) {
-    fullname.value = data.name
     treks.value = data.treks
     users.value = data.user_count
     staff.value = data.staff_count
     bookings.value = data.bookings
   }
   else {
-    showFlash(data.message, 'danger')
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setTimeout(() => {
-      router.push('/')
-    }, 1300)
+    flash.showFlash(data.message, 'danger')
+    auth.logout()
+    router.push('/')
   }
 }
 
@@ -85,7 +73,7 @@ const validatePassword = () => {
 
 async function AddStaff() {
   if (spassword.value != scpassword.value) {
-    showFlash('Passwords do not match', 'danger')
+    flash.showFlash('Passwords do not match', 'danger')
     return
   }
   const res= await fetch('http://127.0.0.1:5000/api/staff', {
@@ -104,7 +92,7 @@ async function AddStaff() {
   })
   const data = await res.json()
   if (res.ok) {
-    showFlash(data.message, 'success')
+    flash.showFlash(data.message, 'success')
     semail.value = ''
     spassword.value = ''
     scpassword.value = ''
@@ -113,15 +101,12 @@ async function AddStaff() {
     await getAdminDashboard()
   }
   else {
-    showFlash(data.message, 'danger')
+    flash.showFlash(data.message, 'danger')
   }
 }
 </script>
 
 <template>
-  <div v-if="flashMessage" :class="`alert alert-${flashType} position-fixed top-0 start-50 translate-middle-x mt-3`" style="z-index: 9999; min-width: 400px;">
-  {{ flashMessage }}
-</div>
 <h1><i class="fa-solid fa-gauge-high"></i> Dashboard
 <RouterLink to="/admin/add_trek" class="btn btn-success mt-2 float-end ms-2"><i class="fa-solid fa-plus"></i> New Trek </RouterLink>
 <button class="btn btn-success mt-2 float-end ms-2" data-bs-toggle="modal" data-bs-target="#addStaffModal"> <i class="fa-solid fa-user-plus"></i> Add Staff </button></h1>

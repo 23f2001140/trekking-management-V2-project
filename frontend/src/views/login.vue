@@ -2,12 +2,17 @@
 import { RouterLink } from 'vue-router'
 import router from '../router'
 import {ref} from 'vue'
+import { useFlash } from '@/stores/flash'
+import { useAuth } from '@/stores/auth'
+
+const auth = useAuth()
+
+const flash = useFlash()
 
 const password = ref('admin123')
 const email = ref('admin@gmail.com')
 const pmessage = ref('')
-const flashMessage = ref('')
-const flashType = ref('')
+
 
 const validatePassword = () => {
   if (password.value == '') {
@@ -20,15 +25,7 @@ const validatePassword = () => {
       pmessage.value = ''
   }
 }
-function showFlash(message, type) {
 
-  flashMessage.value = message
-  flashType.value = type
-
-  setTimeout(() => {
-    flashMessage.value = ''
-  }, 3000)
-}
 async function loginUser() {
   const res= await fetch('http://127.0.0.1:5000/api/login', {
     method: 'POST',
@@ -42,14 +39,13 @@ async function loginUser() {
   })
   const data = await res.json()
   if (res.ok) {
-    showFlash(data.message, 'success')
+    flash.showFlash(data.message, 'success', true, 1000)
     setTimeout(() => {
-      localStorage.setItem('token', data.access_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      if (data.role == 'admin') {
+      auth.login(data.user, data.access_token)
+      if (auth.role == 'admin') {
         router.push('/admin')
       }
-      else if (data.role == 'staff') {
+      else if (auth.role == 'staff') {
         router.push('/staff')
       }
       else {
@@ -58,15 +54,12 @@ async function loginUser() {
     } , 1000)
   }
   else {
-    showFlash(data.message, 'danger')
+    flash.showFlash(data.message, 'danger')
   }
 }
 </script>
 
 <template>
-<div v-if="flashMessage" :class="`alert alert-${flashType} position-fixed top-0 start-50 translate-middle-x mt-3`" style="z-index: 9999; min-width: 400px;">
-  {{ flashMessage }}
-</div>
 <div class="container d-flex justify-content-center align-items-center mt-5">
   <div class="card shadow-lg p-4" style="max-width: 420px; border-radius: 16px;">
     <div class="card-body">

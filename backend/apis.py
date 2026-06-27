@@ -58,7 +58,7 @@ class LoginApi(Resource):
                 result={'message': 'Your account has been blacklisted Please contatct support at support@trekcentral.com'}
                 return make_response(jsonify(result),400)
             access_token = create_access_token(identity=str(user.id), additional_claims={'role': user.role})
-            result={'message': 'Logged in successfulyy' , 'access_token': access_token, 'user': user.get_user(), 'role': user.role}
+            result={'message': 'Logged in successfulyy' , 'access_token': access_token, 'user': user.get_user()}
             return make_response(jsonify(result),200)
         else:
             result={'message': 'Invalid Password'}
@@ -100,17 +100,12 @@ api.add_resource(RegisterApi, '/register')
 class AdminDashboard(Resource):
     @admin_required
     def get(self):
-        id= get_jwt_identity()
-        user = User.query.filter_by(id=id).first()
-        if user.role != 'admin':
-            return make_response(jsonify({'message': 'You are not authorized to access this resource'}), 401)
-        name=user.fullname
         user_count=User.query.filter_by(role='user').count()
         staff_count=User.query.filter_by(role='staff').count()
         treks=Trek.query.count()
         bookings=Booking.query.count()
         
-        return make_response(jsonify({'name': name, 'user_count': user_count, 'staff_count': staff_count, 'treks': treks, 'bookings': bookings}), 200)
+        return make_response(jsonify({ 'user_count': user_count, 'staff_count': staff_count, 'treks': treks, 'bookings': bookings}), 200)
 
 api.add_resource(AdminDashboard, '/admin')
 

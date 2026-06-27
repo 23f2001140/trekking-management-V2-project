@@ -2,6 +2,10 @@
 import { RouterLink } from 'vue-router'
 import {ref} from 'vue'
 import router from '../router'
+import { useFlash } from '@/stores/flash'
+
+const flash = useFlash()
+
 
 const email = ref('')
 const fullname = ref('')
@@ -10,8 +14,6 @@ const password = ref('')
 const cpassword = ref('')
 const message = ref('')
 const pmessage = ref('')
-const flashMessage = ref('')
-const flashType = ref('')
 
 const validateEmail = () => {
     if (email.value == '') {
@@ -36,18 +38,9 @@ const validatePassword = () => {
       pmessage.value = ''
   }
 }
-function showFlash(message, type) {
-
-  flashMessage.value = message
-  flashType.value = type
-
-  setTimeout(() => {
-    flashMessage.value = ''
-  }, 3000)
-}
 async function registerUser() {
   if (password.value != cpassword.value) {
-    showFlash('Passwords do not match', 'danger')
+    flash.showFlash('Passwords do not match', 'danger')
     return
   }
   const res= await fetch('http://127.0.0.1:5000/api/register', {
@@ -65,12 +58,12 @@ async function registerUser() {
   })
   const data = await res.json()
   if (res.ok) {
-    showFlash(data.message, 'success')
+    flash.showFlash(data.message, 'success', true , 1000)
     setTimeout(() => {
       router.push('/')} , 1000)
   }
   else {
-    showFlash(data.message, 'danger')
+    flash.showFlash(data.message, 'danger')
   }
 }
 
@@ -78,9 +71,6 @@ async function registerUser() {
 </script>
 
 <template>
-<div v-if="flashMessage" :class="`alert alert-${flashType} position-fixed top-0 start-50 translate-middle-x mt-3`" style="z-index: 9999; min-width: 400px;">
-  {{ flashMessage }}
-</div>
 <div class="container d-flex justify-content-center align-items-center mt-5">
   <div class="card shadow-lg p-4" style="width: 100%; max-width: 480px; border-radius: 16px;">
     <div class="card-body">

@@ -22,6 +22,7 @@ class User(db.Model):
                 'email': self.email, 
                 'phone': self.phone, 
                 'fullname': self.fullname,
+                'role':self.role,
                 'is_blacklisted': self.is_blacklisted
                 }
     

@@ -1,23 +1,13 @@
 <script setup>
 import {ref , onMounted} from 'vue'
-import {RouterLink} from 'vue-router'
 import router from '../../router'
+import { useFlash } from '@/stores/flash'
+import { useAuth } from '@/stores/auth'
+const auth = useAuth()
+const flash = useFlash()
 
 const search = ref('')
 const users = ref([])
-
-const flashMessage = ref('')
-const flashType = ref('')
-
-function showFlash(message, type) {
-
-  flashMessage.value = message
-  flashType.value = type
-
-  setTimeout(() => {
-    flashMessage.value = ''
-  }, 3000)
-}
 
 async function getUsers() {
   const res = await fetch('http://127.0.0.1:5000/api/staff', {
@@ -32,12 +22,9 @@ async function getUsers() {
     users.value = data
   }
   else {
-    showFlash(data.message, 'danger')
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setTimeout(() => {
-      router.push('/')
-    }, 1300)
+    flash.showFlash(data.message, 'danger', true)
+    auth.logout()
+    router.push('/')
   }
 }
 
@@ -99,7 +86,7 @@ onMounted(async () => {
 
 <div v-else>
     <h1 class="text-center mt-4">
-        No Users Are There
+        No Staff Are There
         <i class="fa-regular fa-face-frown"></i>
     </h1>
 </div>

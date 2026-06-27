@@ -1,7 +1,12 @@
 <script setup>
 import {ref , onMounted, watch} from 'vue'
-import {RouterLink} from 'vue-router'
 import router from '../../router'
+import { useFlash } from '@/stores/flash'
+import { useAuth } from '@/stores/auth'
+const auth = useAuth()
+const flash = useFlash()
+
+
 
 const name = ref('')
 const location = ref('')
@@ -16,18 +21,7 @@ const status = ref('')
 const image_url = ref('')
 const staff = ref([])
 
-const flashMessage = ref('')
-const flashType = ref('')
 
-function showFlash(message, type) {
-
-  flashMessage.value = message
-  flashType.value = type
-
-  setTimeout(() => {
-    flashMessage.value = ''
-  }, 3000)
-}
 
 async function getStaff() {
   const res = await fetch('http://127.0.0.1:5000/api/staff', {
@@ -42,12 +36,9 @@ async function getStaff() {
     staff.value = data
   }
   else {
-    showFlash(data.message, 'danger')
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setTimeout(() => {
-      router.push('/')
-    }, 1300)
+    flash.showFlash(data.message, 'danger', true)
+    auth.logout()
+    router.push('/')
   }
 }
 
@@ -62,31 +53,31 @@ watch(assigned_staff_id, (newValue) => {
 })
 
 const validateDate = () => {
-  if (start_date.value > end_date.value) {
-    showFlash('Start Date should be earlier than End Date', 'danger')
+  if (start_date.value > end_date.value && end_date.value != '') {
+    flash.showFlash('Start Date should be earlier than End Date', 'danger')
     end_date.value = ''
   }
 }
 
 async function addTrek() {
   if (name.value == '' || location.value == '' || difficulty.value == '' || price.value == '' || available_slots.value == '' || start_date.value == '' || end_date.value == '') {
-    showFlash('Please fill all the required fields', 'danger')
+    flash.showFlash('Please fill all the required fields', 'danger')
     return
   }
   if (price.value < 0) {
-    showFlash('Price should be greater than 0', 'danger')
+    flash.showFlash('Price should be greater than 0', 'danger')
     return
   }
   if (available_slots.value < 0) {
-    showFlash('Available Slots should be greater than 0', 'danger')
+    flash.showFlash('Available Slots should be greater than 0', 'danger')
     return
   }
   if (assigned_staff_id.value == '' && status.value != '') {
-    showFlash('You can not select trek status if you have not assigned staff', 'danger')
+    flash.showFlash('You can not select trek status if you have not assigned staff', 'danger')
     return
   }
   if (assigned_staff_id.value != '' && status.value == '') {
-    showFlash('You have to select trek status if you have assigned staff', 'danger')
+    flash.showFlash('You have to select trek status if you have assigned staff', 'danger')
     return
   }
   const res= await fetch('http://127.0.0.1:5000/api/trek', {
@@ -111,13 +102,13 @@ async function addTrek() {
   })
   const data = await res.json()
   if (res.ok) {
-    showFlash(data.message, 'success')
+    flash.showFlash(data.message, 'success', true)
     setTimeout(() => {
       router.push('/admin')
     }, 2000)
   }
   else {
-    showFlash(data.message, 'danger')
+    flash.showFlash(data.message, 'danger')
   }   
 }
 
@@ -127,9 +118,6 @@ async function addTrek() {
 </script>
 
 <template>
-  <div v-if="flashMessage" :class="`alert alert-${flashType} position-fixed top-0 start-50 translate-middle-x mt-3`" style="z-index: 9999; min-width: 400px;">
-    {{ flashMessage }}
-  </div>
 <h1 class="text-center mt-4"> Add Trek <i class="fa-solid fa-cable-car"></i> </h1>
 <br>
 
