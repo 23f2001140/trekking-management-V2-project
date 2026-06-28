@@ -80,7 +80,7 @@ async function addTrek() {
     flash.showFlash('You have to select trek status if you have assigned staff', 'danger')
     return
   }
-  const res= await fetch('http://127.0.0.1:5000/api/trek', {
+  const res= await fetch('http://127.0.0.1:5000/api/admin/treks', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -102,10 +102,10 @@ async function addTrek() {
   })
   const data = await res.json()
   if (res.ok) {
-    flash.showFlash(data.message, 'success', true)
+    flash.showFlash(data.message, 'success', true, 1500)
     setTimeout(() => {
       router.push('/admin')
-    }, 2000)
+    }, 1500)
   }
   else {
     flash.showFlash(data.message, 'danger')
@@ -118,6 +118,7 @@ async function addTrek() {
 </script>
 
 <template>
+<div>
 <h1 class="text-center mt-4"> Add Trek <i class="fa-solid fa-cable-car"></i> </h1>
 <br>
 
@@ -202,4 +203,5 @@ async function addTrek() {
 <br>
 
 </form>
+</div>
 </template>

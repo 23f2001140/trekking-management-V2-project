@@ -60,33 +60,42 @@ const router = createRouter({
       name: 'admin_staff',
       meta: {role : 'admin'},
       component: () => import('../views/admin/admin_staff.vue'),
+    },
+    {
+      path: '/admin/treks',
+      name: 'admin_treks',
+      meta: {role : 'admin'},
+      component: () => import('../views/admin/admin_treks.vue'),
+    },
+    {
+      path: '/admin/update_trek/:id',
+      name: 'admin_update_trek',
+      meta: {role : 'admin'},
+      component: () => import('../views/admin/admin_update_trek.vue'),
     }
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const auth = useAuth()
   const flash = useFlash()
   
   if(!to.meta.role) {
-    next()
-    return
+    return true
   }
 
   if(!auth.isLoggedIn) {
     auth.logout()
     flash.showFlash('You must be logged in to access this page', 'danger')
-    next('/')
-    return
+    return '/'
   }
 
   if(auth.role !== to.meta.role) {
     flash.showFlash('You are not authorized to access this page', 'danger')
-    next(`/${auth.role}`)
-    return
+    return `/${auth.role}`
   }
 
-  next()
+  return true
 })
 
 export default router

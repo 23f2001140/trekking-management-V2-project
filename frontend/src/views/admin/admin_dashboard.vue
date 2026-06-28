@@ -107,8 +107,9 @@ async function AddStaff() {
 </script>
 
 <template>
+<div>
 <h1><i class="fa-solid fa-gauge-high"></i> Dashboard
-<RouterLink to="/admin/add_trek" class="btn btn-success mt-2 float-end ms-2"><i class="fa-solid fa-plus"></i> New Trek </RouterLink>
+<RouterLink :to="{ name: 'admin_add_trek' }" class="btn btn-success mt-2 float-end ms-2"><i class="fa-solid fa-plus"></i> New Trek </RouterLink>
 <button class="btn btn-success mt-2 float-end ms-2" data-bs-toggle="modal" data-bs-target="#addStaffModal"> <i class="fa-solid fa-user-plus"></i> Add Staff </button></h1>
 <p class="text-muted">Welcome, {{fullname }}!</p>
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
@@ -159,7 +160,7 @@ async function AddStaff() {
 <div class="row mb-4 mt-4 d-flex justify-content-center align-items-center">
   <div class="col-sm-3">
     <div class="card text-bg-dark mb-3">
-      <RouterLink to="/admin" class="text-decoration-none text-white">
+      <RouterLink :to="{ name: 'admin_treks' }" class="text-decoration-none text-white">
         <div class="card-body">
           <h5 class="card-title fa-solid fa-map"></h5>
           <h2 class="card-text">{{treks}}</h2>
@@ -170,7 +171,7 @@ async function AddStaff() {
   </div>
   <div class="col-sm-3">
     <div class="card text-bg-success mb-3">
-      <RouterLink to="/admin/users" class="text-decoration-none text-white">
+      <RouterLink :to="{ name: 'admin_users' }" class="text-decoration-none text-white">
         <div class="card-body">
           <h5 class="card-title fa-solid fa-users"></h5>
           <h2 class="card-text"><strong>{{ users }}</strong></h2>
@@ -181,7 +182,7 @@ async function AddStaff() {
   </div>
   <div class="col-sm-3">
     <div class="card text-bg-info mb-3">
-      <RouterLink to="/admin/staff" class="text-decoration-none text-dark">
+      <RouterLink :to="{ name: 'admin_staff' }" class="text-decoration-none text-dark">
         <div class="card-body">
           <h5 class="card-title fa-solid fa-users-gear"></h5>
           <h2 class="card-text"><strong>{{ staff }}</strong></h2>
@@ -192,7 +193,7 @@ async function AddStaff() {
   </div>
   <div class="col-sm-3">
     <div class="card text-bg-warning mb-3">
-      <RouterLink to="/admin" class="text-decoration-none text-dark">
+      <RouterLink :to="{ name: 'admin' }" class="text-decoration-none text-dark">
         <div class="card-body">
           <h5 class="card-title fa-solid fa-list-check"> </h5>
           <h2 class="card-text"><strong>{{ bookings }}</strong></h2>
@@ -201,5 +202,6 @@ async function AddStaff() {
     </RouterLink>
     </div>
   </div>
+</div>
 </div>
 </template>

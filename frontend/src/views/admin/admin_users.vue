@@ -36,7 +36,8 @@ onMounted(async () => {
 </script>
 
 <template>
-<div v-if="users.length">
+<div>
+<div v-if="users">
     <h3 class="mt-4"> View All Users Of <strong>TREKCENTRAL</strong> <i class="fa-solid fa-user-group"></i></h3>
     <br>
 
@@ -95,4 +96,5 @@ onMounted(async () => {
 
 <br>
 <br>
+</div>
 </template>

@@ -58,7 +58,9 @@ class Trek(db.Model):
                 'assigned_staff_id': self.assigned_staff_id, 
                 'start_date': self.start_date, 
                 'end_date': self.end_date, 
-                'status': self.status
+                'status': self.status,
+                'image_url': self.image_url,
+                'assigned_staff': self.assigned_staff.get_user() if self.assigned_staff else None
                 }
     
 class Booking(db.Model):
