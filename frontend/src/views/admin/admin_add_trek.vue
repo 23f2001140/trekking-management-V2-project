@@ -80,6 +80,10 @@ async function addTrek() {
     flash.showFlash('You have to select trek status if you have assigned staff', 'danger')
     return
   }
+  if (start_date.value > end_date.value) {
+    flash.showFlash('Start Date should be earlier than End Date', 'danger')
+    return
+  }
   const res= await fetch('http://127.0.0.1:5000/api/admin/treks', {
     method: 'POST',
     headers: {
@@ -156,7 +160,7 @@ async function addTrek() {
 
   <div class="col-md-6">
     <label for="available_slots" class="form-label"><strong>Available Slots</strong></label>
-    <input v-model="available_slots" type="number" class="form-control" id="available_slots" min="1"c required>
+    <input v-model="available_slots" type="number" class="form-control" id="available_slots" min="1" required>
   </div>
 
   <div class="col-md-6">

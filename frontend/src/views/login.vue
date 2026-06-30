@@ -9,8 +9,8 @@ const auth = useAuth()
 
 const flash = useFlash()
 
-const password = ref('admin123')
-const email = ref('admin@gmail.com')
+const password = ref('user123')
+const email = ref('user2@gmail.com')
 const pmessage = ref('')
 
 

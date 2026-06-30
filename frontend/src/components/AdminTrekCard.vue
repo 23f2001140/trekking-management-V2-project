@@ -29,6 +29,8 @@ const StatusColor = computed(() => {
     return 'bg-warning'
   } else if (trek.status === 'Approved') {
     return 'bg-info'
+  } else if (trek.status === 'Completed') {
+    return 'bg-secondary'
   }
 })
 

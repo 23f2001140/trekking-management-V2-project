@@ -1,3 +1,80 @@
+<script setup>
+import { RouterLink } from 'vue-router'
+import { useAuth } from '@/stores/auth'
+import { useFlash } from '@/stores/flash'
+import router from '../../router'
+import { ref, onMounted } from 'vue'
+import UserTrekCard from '@/components/UserTrekCard.vue'
+const auth = useAuth()
+const flash = useFlash()
+
+const fullname = auth.user.fullname
+const treks = ref('')
+const upcoming_treks = ref('')
+
+async function getTrekDetails() {
+  const res = await fetch(`http://127.0.0.1:5000/api/user`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${auth.token}`
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    treks.value = data.treks
+    upcoming_treks.value = data.upcoming_treks
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+    auth.logout()
+    router.push('/')
+  }
+}
+
+onMounted(async () => {
+ await getTrekDetails()
+})
+</script>
+
+
+
+
+
 <template>
-    <h1>User Dashboard</h1>
+<div>
+    <h1><i class="fa-solid fa-user mt mt-4"></i> Dashboard
+    <RouterLink :to="{name: 'user'}" class="btn btn-success mt-4 float-end"><i class="fa-solid fa-book"></i> My Bookings </RouterLink> </h1>
+    <p  class="text-muted">Welcome, {{ fullname }}!</p>
+    <br>
+    <br>
+    <div class='d-flex justify-content-between align-items-center'>
+        <h3><strong>Explore Treks</strong></h3>
+    <!-- <form class="d-flex align-items-center gap-2" role="search" @submit.prevent>
+        <select class="form-select" id="difficulty" name="difficulty">
+            <option value="">Select Difficulty</option>
+            <option value="Easy">Easy</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Hard">Hard</option>
+        </select>
+        <input class="form-control w-auto" style="min-width: 250px;" type="search" placeholder="Search Location" aria-label="location" id="location" name="location" value="">
+        <button class="btn btn-outline-success d-flex align-items-center gap-1" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+    </form> -->
+    </div>
+    <br>
+    <div v-if="treks">
+        <UserTrekCard v-for="trek in treks" :key="trek.id" :trek="trek" />
+    </div>
+
+    <div v-else>
+        <h1 class="text-center mt-4"> Oops! No Treks Are Available At The Moment <i class="fa-regular fa-face-sad-tear"></i><br> Stay Tuned For Upcoming New Treks </h1>
+    </div>
+    <br>
+    <div v-if="upcoming_treks">
+        <h3><strong>Upcoming Treks</strong></h3>
+        <br>
+        <UserTrekCard v-for="trek in upcoming_treks" :key="trek.id" :trek="trek" />
+    </div>
+
+</div>
 </template>

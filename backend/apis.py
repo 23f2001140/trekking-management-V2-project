@@ -118,10 +118,10 @@ class AdminTrekAPI(Resource):
                 return make_response(jsonify({'message': 'Trek does not exist'}), 404)
             return make_response(jsonify(trek.get_trek()), 200)
         else:
-            trek = Trek.query.all()
+            treks = Trek.query.all()
             response = []
-            for t in trek:
-                response.append(t.get_trek())
+            for trek in treks:
+                response.append(trek.get_trek())
             return make_response(jsonify(response), 200)
     
     @admin_required
@@ -138,7 +138,7 @@ class AdminTrekAPI(Resource):
         end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
         status = data.get('status')
         image_url = data.get('image_url')
-        if not data or not name or not location or not difficulty or not price or not available_slots or not start_date or not end_date or not image_url:
+        if not data or not name or not location or not difficulty or not price or not available_slots or not start_date or not end_date:
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if price <= 0:
             return make_response(jsonify({'message': 'Price should be greater than or equal to 0'}), 400)
@@ -189,7 +189,7 @@ class AdminTrekAPI(Resource):
         end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
         status = data.get('status')
         image_url = data.get('image_url')
-        if not data or not name or not location or not difficulty or not price or not available_slots or not start_date or not end_date or not image_url:
+        if not data or not name or not location or not difficulty or not price or not available_slots or not start_date or not end_date:
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if price <= 0:
             return make_response(jsonify({'message': 'Price should be greater than or equal to 0'}), 400)
@@ -223,11 +223,23 @@ class AdminTrekAPI(Resource):
         trek.image_url = image_url
         db.session.commit()
         return make_response(jsonify({'message': 'Trek updated successfully'}), 200)
+    
+    @admin_required
+    def delete(self,id):
+        if not id:
+            return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
+        trek = Trek.query.filter_by(id=id).first()
+        if not trek:
+            return make_response(jsonify({'message': 'Trek does not exist'}), 404)
+        db.session.delete(trek)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Trek deleted successfully'}), 200)
+
 
 api.add_resource(AdminTrekAPI, '/admin/treks' , '/admin/trek/<int:id>')
 
 
-class UserAPI(Resource):
+class AdminUserAPI(Resource):
     @admin_required
     def get(self):
         user = User.query.filter_by(role='user').all()
@@ -235,7 +247,30 @@ class UserAPI(Resource):
         for u in user:
             response.append(u.get_user())
         return make_response(jsonify(response), 200)
-api.add_resource(UserAPI, '/users')
+    
+    @admin_required
+    def patch(self, id):
+        if not id and not id.isdigit():
+            return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
+        data = request.get_json()
+        user = User.query.filter_by(id=id).first()
+        if not user:
+            return make_response(jsonify({'message': 'User does not exist'}), 404)
+        is_blacklisted = data.get('is_blacklisted')
+        if is_blacklisted in [True, False]:
+            user.is_blacklisted = is_blacklisted
+            db.session.commit()
+            if(is_blacklisted and user.role == 'user'):
+                return make_response(jsonify({'message': 'User blacklisted successfully'}), 200)
+            elif(is_blacklisted and user.role == 'staff'):
+                return make_response(jsonify({'message': 'Staff blacklisted successfully'}), 200)
+            elif(not is_blacklisted and user.role == 'user'):
+                return make_response(jsonify({'message': 'User Activated successfully'}), 200)
+            elif(not is_blacklisted and user.role == 'staff'):
+                return make_response(jsonify({'message': 'Staff Activated successfully'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Invalid data provided'}), 400)
+api.add_resource(AdminUserAPI, '/admin/users' , '/admin/users/<int:id>')
 
 class StaffAPI(Resource):
     @admin_required
@@ -274,13 +309,17 @@ class StaffAPI(Resource):
         return make_response(jsonify({'message': 'Staff created successfully'}), 201)
 api.add_resource(StaffAPI, '/staff')
 
-class TrekAPI(Resource):
-    @admin_required
-    def get(self):
-        trek = Trek.query.all()
-        response = []
-        for t in trek:
-            response.append(t.get_trek())
-        return make_response(jsonify(response), 200)
 
-api.add_resource(TrekAPI, '/trek')
+class UserDashboardAPI(Resource):
+    @user_required
+    def get(self):
+        treks = Trek.query.filter_by(status='Open').all()
+        upcoming_treks = Trek.query.filter_by(status='Approved').all()
+        response = []
+        response2 = []
+        for trek in treks:
+            response.append(trek.get_trek())
+        for trek in upcoming_treks:
+            response2.append(trek.get_trek())
+        return make_response(jsonify({'treks': response, 'upcoming_treks': response2}), 200)
+api.add_resource(UserDashboardAPI, '/user')

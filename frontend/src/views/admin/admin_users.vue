@@ -12,7 +12,7 @@ const users = ref([])
 
 
 async function getUsers() {
-  const res = await fetch('http://127.0.0.1:5000/api/users', {
+  const res = await fetch('http://127.0.0.1:5000/api/admin/users', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -32,7 +32,49 @@ async function getUsers() {
 
 onMounted(async () => {
  await getUsers()
-})          
+})
+
+async function blacklistUser(id) {
+  const res = await fetch(`http://127.0.0.1:5000/api/admin/users/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      is_blacklisted: true,
+    }),
+  })
+  const data = await res.json()
+  if (res.ok) {
+    flash.showFlash(data.message, 'success')
+    getUsers()
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+  }   
+}
+
+async function activateUser(id) {
+  const res = await fetch(`http://127.0.0.1:5000/api/admin/users/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      is_blacklisted: false,
+    }),
+  })
+  const data = await res.json()
+  if (res.ok) {
+    flash.showFlash(data.message, 'success')
+    getUsers()
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+  }   
+}
 </script>
 
 <template>
@@ -69,7 +111,7 @@ onMounted(async () => {
                 <td>{{ fullname }}</td>
                 <td>{{ phone }}</td>
                 <td>{{ is_blacklisted ? 'Blacklisted' : 'Active' }}</td>
-                <td> <button class="btn btn-outline-danger"> <i class="fa-solid fa-ban"></i> Blacklist </button> </td>
+                <td> <a class="btn btn-outline-danger" href="#" @click.prevent="blacklistUser(id)"> <i class="fa-regular fa-circle-xmark"></i> Blacklist </a> </td>
             </tr>
         </tbody>
 
@@ -80,7 +122,7 @@ onMounted(async () => {
                 <td>{{ fullname }}</td>
                 <td>{{ phone }}</td>
                 <td>{{ is_blacklisted ? 'Blacklisted' : 'Active' }}</td>
-                <td> <button class="btn btn-outline-success"> <i class="fa-regular fa-circle-check"></i> Activate </button> </td>
+                <td> <a class="btn btn-outline-success" href="#" @click.prevent="activateUser(id)"> <i class="fa-regular fa-circle-check"></i> Activate </a> </td>
             </tr>
         </tbody>
 

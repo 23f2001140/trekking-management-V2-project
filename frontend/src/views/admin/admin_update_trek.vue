@@ -80,7 +80,7 @@ onMounted(async () => {
 watch(assigned_staff_id, (newValue) => {
   if (newValue == '') {
     status.value = ''
-  }
+  } 
 })
 
 const validateDate = () => {
@@ -111,6 +111,10 @@ async function UpdateTrek() {
     flash.showFlash('You have to select trek status if you have assigned staff', 'danger')
     return
   }
+  if (start_date.value > end_date.value) {
+    flash.showFlash('Start Date should be earlier than End Date', 'danger')
+    return
+  }
   const res= await fetch(`http://127.0.0.1:5000/api/admin/trek/${trekId}`, {
     method: 'PUT',
     headers: {
@@ -133,16 +137,38 @@ async function UpdateTrek() {
   })
   const data = await res.json()
   if (res.ok) {
-    flash.showFlash(data.message, 'success', true, 1500)
+    flash.showFlash(data.message, 'success', true, 1000)
     setTimeout(() => {
-      router.push('/admin')
-    }, 1500)
+      router.push('/admin/treks')
+    }, 1000)
   }
   else {
     flash.showFlash(data.message, 'danger')
   }   
 }
 
+async function deleteTrek() {
+  if (!confirm('Are you sure you want to delete this trek? This action cannot be undone.')) {
+    return
+  }
+  const res = await fetch(`http://127.0.0.1:5000/api/admin/trek/${trekId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    flash.showFlash(data.message, 'success', true, 1000)
+    setTimeout(() => {
+      router.push('/admin/treks')
+    }, 1000)
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+  }   
+}
 
 
 
@@ -216,6 +242,8 @@ async function UpdateTrek() {
       <option value="">-- Select Status --</option>
       <option value="Approved">Approved</option>
       <option value="Open">Open</option>
+      <option value="Closed">Closed</option>
+      <option value="Completed">Completed</option>
     </select>
   </div>
 
@@ -231,6 +259,9 @@ async function UpdateTrek() {
   <br>
   <div class="text-center mt-4">
     <button type="submit" class="btn btn-primary">Update Trek</button>
+  </div>
+  <div class="text-center mt-4">
+    <button type="button" class="btn btn-danger" @click="deleteTrek">Delete This Trek</button>
   </div>
 <br>
 <br>
