@@ -1,0 +1,89 @@
+<script setup>
+import { useAuth } from '@/stores/auth'
+import { useFlash } from '@/stores/flash'
+import router from '../../router'
+import { ref, onMounted } from 'vue'
+import UserMyBookings from '@/components/UserMyBookings.vue'
+import { RouterLink } from 'vue-router'
+const auth = useAuth()
+const flash = useFlash()
+
+const fullname = auth.user.fullname
+const ongoing_bookings = ref('')
+const past_bookings = ref('')
+
+async function getBookings() {
+  const res = await fetch(`http://127.0.0.1:5000/api/user/mybookings`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${auth.token}`
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    console.log(data)
+    ongoing_bookings.value = data.ongoing
+    past_bookings.value = data.past
+
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+    auth.logout()
+    router.push('/')
+  }
+}
+onMounted(async () => {
+ await getBookings()
+})
+
+async function CancelTrek(id) {
+  if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+    return
+  }
+  const res = await fetch(`http://127.0.0.1:5000/api/user/mybookings/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    flash.showFlash(data.message, 'success')
+    await getBookings()
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+  }   
+}
+
+</script>
+
+<template>
+<div>
+    <h1><i class="fa-solid fa-user mt mt-4"></i> My Bookings</h1>
+    <p  class="text-muted">Welcome, {{ fullname }}!</p>
+    <br>
+    <br>
+    <div v-if="ongoing_bookings.length > 0">
+        <h3><strong>Ongoing Bookings</strong></h3>
+        <br>
+        <UserMyBookings v-for="booking in ongoing_bookings" :key="booking.id" :trek="booking.trek" :booking_status="booking.status" :booking_date="booking.booking_date" @cancel-trek="CancelTrek(booking.id)" />
+        </div>
+    <br>
+    <div v-if="past_bookings.length > 0">
+        <h3><strong>Past Bookings</strong></h3>
+        <br>
+        <UserMyBookings v-for="booking in past_bookings" :key="booking.id" :trek="booking.trek" :booking_status="booking.status" :booking_date="booking.booking_date" />
+    </div>
+    <br>
+    <div v-if ="ongoing_bookings.length === 0 && past_bookings.length === 0">
+        <h1 class="text-center mt-4"> No Bookings Found <i class="fa-regular fa-face-sad-tear"></i><br> Start Your Journey With Us With Your First Booking </h1>
+    <br>
+        <div class="text-center mt-4">
+        <RouterLink :to="{name: 'user'}" class="btn btn-success"> <i class="fa-solid fa-book"></i> Book Your First Trek</RouterLink>
+        </div>
+    </div>
+</div>
+</template>

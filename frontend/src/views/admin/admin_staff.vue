@@ -10,7 +10,7 @@ const search = ref('')
 const users = ref([])
 
 async function getStaff() {
-  const res = await fetch('http://127.0.0.1:5000/api/staff', {
+  const res = await fetch('http://127.0.0.1:5000/api/admin/staff', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

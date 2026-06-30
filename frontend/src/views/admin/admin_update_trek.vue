@@ -54,7 +54,7 @@ async function getTrekDetails() {
 
 
 async function getStaff() {
-  const res = await fetch('http://127.0.0.1:5000/api/staff', {
+  const res = await fetch('http://127.0.0.1:5000/api/admin/staff', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const validateDate = () => {
 }
 
 async function UpdateTrek() {
-  if (name.value == '' || location.value == '' || difficulty.value == '' || price.value == '' || available_slots.value == '' || start_date.value == '' || end_date.value == '') {
+  if (name.value == '' || location.value == '' || difficulty.value == '' || price.value == '' || available_slots.value === '' || start_date.value == '' || end_date.value == '') {
     flash.showFlash('Please fill all the required fields', 'danger')
     return
   }
@@ -215,7 +215,7 @@ async function deleteTrek() {
 
   <div class="col-md-6">
     <label for="available_slots" class="form-label"><strong>Available Slots</strong></label>
-    <input v-model="available_slots" type="number" class="form-control" id="available_slots" min="1"c required>
+    <input v-model="available_slots" type="number" class="form-control" id="available_slots" min="0" required>
   </div>
 
   <div class="col-md-6">

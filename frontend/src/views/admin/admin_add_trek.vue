@@ -24,7 +24,7 @@ const staff = ref([])
 
 
 async function getStaff() {
-  const res = await fetch('http://127.0.0.1:5000/api/staff', {
+  const res = await fetch('http://127.0.0.1:5000/api/admin/staff', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ async function addTrek() {
 
   <div class="col-md-6">
     <label for="available_slots" class="form-label"><strong>Available Slots</strong></label>
-    <input v-model="available_slots" type="number" class="form-control" id="available_slots" min="1" required>
+    <input v-model="available_slots" type="number" class="form-control" id="available_slots" min="0" required>
   </div>
 
   <div class="col-md-6">

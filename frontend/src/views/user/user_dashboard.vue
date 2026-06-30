@@ -11,6 +11,7 @@ const flash = useFlash()
 const fullname = auth.user.fullname
 const treks = ref('')
 const upcoming_treks = ref('')
+const bookings_status = ref('')
 
 async function getTrekDetails() {
   const res = await fetch(`http://127.0.0.1:5000/api/user`, {
@@ -22,8 +23,10 @@ async function getTrekDetails() {
   })
   const data = await res.json()
   if (res.ok) {
+    console.log(data)
     treks.value = data.treks
     upcoming_treks.value = data.upcoming_treks
+    bookings_status.value = data.bookings_status
   }
   else {
     flash.showFlash(data.message, 'danger')
@@ -35,6 +38,24 @@ async function getTrekDetails() {
 onMounted(async () => {
  await getTrekDetails()
 })
+
+async function bookTrek(id) {
+  const res = await fetch(`http://127.0.0.1:5000/api/user/booking/${id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    flash.showFlash(data.message, 'success')
+    await getTrekDetails()
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+  }   
+}
 </script>
 
 
@@ -44,7 +65,7 @@ onMounted(async () => {
 <template>
 <div>
     <h1><i class="fa-solid fa-user mt mt-4"></i> Dashboard
-    <RouterLink :to="{name: 'user'}" class="btn btn-success mt-4 float-end"><i class="fa-solid fa-book"></i> My Bookings </RouterLink> </h1>
+    <RouterLink :to="{name: 'user_mybookings'}" class="btn btn-success mt-4 float-end"><i class="fa-solid fa-book"></i> My Bookings | {{Object.keys(bookings_status).length}} </RouterLink> </h1>
     <p  class="text-muted">Welcome, {{ fullname }}!</p>
     <br>
     <br>
@@ -63,7 +84,7 @@ onMounted(async () => {
     </div>
     <br>
     <div v-if="treks">
-        <UserTrekCard v-for="trek in treks" :key="trek.id" :trek="trek" />
+        <UserTrekCard v-for="trek in treks" :key="trek.id" :trek="trek" :booking_status="bookings_status[trek.id]" @book-trek="bookTrek(trek.id)" />
     </div>
 
     <div v-else>

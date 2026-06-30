@@ -105,7 +105,7 @@ const logout = () => {
             </li>
             
             <li class="nav-item">
-              <RouterLink class="nav-link" :to="{name: 'user'}  "> Bookings </RouterLink>
+              <RouterLink class="nav-link" :to="{name: 'user_mybookings'}"> Bookings </RouterLink>
             </li>
 
 

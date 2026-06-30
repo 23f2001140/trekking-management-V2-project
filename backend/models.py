@@ -78,5 +78,6 @@ class Booking(db.Model):
                 'user_id': self.user_id, 
                 'trek_id': self.trek_id, 
                 'booking_date': self.booking_date, 
-                'status': self.status
+                'status': self.status,
+                'trek': self.trek.get_trek()
                 }

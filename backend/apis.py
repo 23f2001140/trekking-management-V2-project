@@ -189,11 +189,11 @@ class AdminTrekAPI(Resource):
         end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
         status = data.get('status')
         image_url = data.get('image_url')
-        if not data or not name or not location or not difficulty or not price or not available_slots or not start_date or not end_date:
+        if not data or not name or not location or not difficulty or not price or not start_date or not end_date:
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if price <= 0:
             return make_response(jsonify({'message': 'Price should be greater than or equal to 0'}), 400)
-        if available_slots <= 0:
+        if available_slots and available_slots < 0:
             return make_response(jsonify({'message': 'Available Slots should be greater than or equal to 0'}), 400)
         if assigned_staff_id and not status:
             return make_response(jsonify({'message': 'You have to select trek status if you have assigned staff'}), 400)
@@ -272,7 +272,7 @@ class AdminUserAPI(Resource):
             return make_response(jsonify({'message': 'Invalid data provided'}), 400)
 api.add_resource(AdminUserAPI, '/admin/users' , '/admin/users/<int:id>')
 
-class StaffAPI(Resource):
+class AdminStaffAPI(Resource):
     @admin_required
     def get(self):
         user = User.query.filter_by(role='staff').all()
@@ -307,7 +307,7 @@ class StaffAPI(Resource):
         db.session.add(user)
         db.session.commit()
         return make_response(jsonify({'message': 'Staff created successfully'}), 201)
-api.add_resource(StaffAPI, '/staff')
+api.add_resource(AdminStaffAPI, '/admin/staff')
 
 
 class UserDashboardAPI(Resource):
@@ -315,11 +315,79 @@ class UserDashboardAPI(Resource):
     def get(self):
         treks = Trek.query.filter_by(status='Open').all()
         upcoming_treks = Trek.query.filter_by(status='Approved').all()
+        bookings=Booking.query.filter_by(user_id=get_jwt_identity()).all()
+        bookings_status={ booking.trek_id: booking.status for booking in bookings }
         response = []
         response2 = []
         for trek in treks:
             response.append(trek.get_trek())
         for trek in upcoming_treks:
             response2.append(trek.get_trek())
-        return make_response(jsonify({'treks': response, 'upcoming_treks': response2}), 200)
+        return make_response(jsonify({'treks': response, 'upcoming_treks': response2,'bookings_status': bookings_status}), 200)
 api.add_resource(UserDashboardAPI, '/user')
+
+class UserBookingAPI(Resource):
+    @user_required
+    def post(self, id):
+        if not id:
+            return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
+        trek = Trek.query.get(id)
+        if not trek:
+            return make_response(jsonify({'message': 'Trek does not exist'}), 404)
+        if trek.status != 'Open':
+            return make_response(jsonify({'message': 'This trek is not open for booking'}), 400)
+        if trek.available_slots == 0:
+            return make_response(jsonify({'message': 'This trek is fully booked'}), 400)
+        cu_id = get_jwt_identity()
+        if(Booking.query.filter_by(user_id=cu_id, trek_id=id, status='Booked').first()):
+            return make_response(jsonify({'message': 'You have already booked this trek'}), 400)
+        if(Booking.query.filter_by(user_id=cu_id, trek_id=id, status='Cancelled').first()):
+            return make_response(jsonify({'message': 'You have cancelled your booking for this trek'}), 400)
+        
+        trek.available_slots -= 1
+        booking = Booking(user_id=get_jwt_identity(), trek_id=id, booking_date=datetime.now())
+        db.session.add(booking)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Booking successful !'}), 201)
+api.add_resource(UserBookingAPI, '/user/booking/<int:id>')
+
+class UserMyBookingAPI(Resource):
+    @user_required
+    def get(self):
+        bookings = Booking.query.filter_by(user_id=get_jwt_identity()).all()
+        ongoing_bookings = [booking for booking in bookings if booking.trek.status in ['Open' , 'Closed' , 'Started'] and booking.status == 'Booked']
+        past_bookings = [booking for booking in bookings if booking.trek.status == 'Completed' or booking.status == 'Cancelled']
+        response = []
+        response2 = []
+        for booking in ongoing_bookings:
+            response.append(booking.get_booking())
+        for booking in past_bookings:
+            response2.append(booking.get_booking())
+        return make_response(jsonify({'ongoing': response, 'past': response2}), 200)
+    
+    @user_required
+    def patch(self, id):
+        if not id:
+            return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
+        booking = Booking.query.filter_by(id=id).first()
+        if not booking:
+            return make_response(jsonify({'message': 'Booking does not exist'}), 404)
+        if booking.user_id != int(get_jwt_identity()):
+            return make_response(jsonify({'message': 'You are not authorized to cancel this booking!'}), 401)
+        booking.trek.available_slots += 1
+        booking.status = 'Cancelled'
+        db.session.commit()
+        return make_response(jsonify({'message': 'Booking cancelled successfully'}), 200)
+api.add_resource(UserMyBookingAPI, '/user/mybookings' , '/user/mybookings/<int:id>')
+
+class StaffDashboardAPI(Resource):
+    @staff_required
+    def get(self):
+        treks = Trek.query.filter_by(assigned_staff_id=get_jwt_identity()).all()
+        registered_users = {}
+        response = []
+        for trek in treks:
+            response.append(trek.get_trek())
+            registered_users[trek.id] = len([booking for booking in trek.bookings if booking.status == 'Booked'])
+        return make_response(jsonify({'treks': response , 'registered_users': registered_users}), 200)
+api.add_resource(StaffDashboardAPI, '/staff')

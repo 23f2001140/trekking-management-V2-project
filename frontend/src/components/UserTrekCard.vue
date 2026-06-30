@@ -1,11 +1,16 @@
 <script setup>
 import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useFlash } from '@/stores/flash'
+
+const flash = useFlash()
 
 const { trek } = defineProps({
   trek: {
     type: Object,
     required: true,
+  },
+  booking_status: {
+    type: String
   },
 })
 
@@ -42,6 +47,17 @@ function formatDate(dateString) {
   })
 }
 
+
+const emit = defineEmits(['book-trek'])
+
+function bookTrek() {
+  emit('book-trek', trek.id)
+}
+
+
+  const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+  const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
 </script>
 
 <template>
@@ -69,10 +85,18 @@ function formatDate(dateString) {
                             </h5>
                             <p class="card-text"><strong> <i class="fa-solid fa-indian-rupee-sign"></i> Price:</strong>{{ trek.price }}</p>
                             </div>
-                            <div>
-                                <RouterLink class="btn btn-primary" :to="{name: 'user' }">Book Now</RouterLink>
+                            <div v-if="booking_status">
+                                <button class="btn btn-secondary" disabled>{{ booking_status }}</button>
                             </div>
-                            
+                            <div v-else-if="trek.status === 'Open' && trek.available_slots > 0">
+                                <button class="btn btn-primary" @click.prevent="bookTrek">Book Now</button>
+                            </div>
+                            <div v-else-if="trek.status === 'Open' && trek.available_slots === 0">
+                                <button class="btn btn-secondary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="This trek is currently fully booked. Availability may open if a booking is cancelled.">Fully Booked</button>
+                            </div>
+                            <div v-else-if="trek.status === 'Approved'">
+                                <button class="btn btn-secondary" disabled>Upcoming</button>
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer ">

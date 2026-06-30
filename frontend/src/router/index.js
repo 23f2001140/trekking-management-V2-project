@@ -32,6 +32,12 @@ const router = createRouter({
       component: () => import('../views/user/user_dashboard.vue'),
     },
     {
+      path: '/user/mybookings',
+      name: 'user_mybookings',
+      meta: {role : 'user'},
+      component: () => import('../views/user/user_mybookings.vue'),
+    },
+    {
       path: '/staff',
       name: 'staff',
       meta: {role : 'staff'},
