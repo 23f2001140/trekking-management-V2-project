@@ -13,7 +13,7 @@ const ongoing_bookings = ref('')
 const past_bookings = ref('')
 
 async function getBookings() {
-  const res = await fetch(`http://127.0.0.1:5000/api/user/mybookings`, {
+  const res = await fetch(`http://127.0.0.1:5000/api/user/booking`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ async function CancelTrek(id) {
   if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
     return
   }
-  const res = await fetch(`http://127.0.0.1:5000/api/user/mybookings/${id}`, {
+  const res = await fetch(`http://127.0.0.1:5000/api/user/booking/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -62,7 +62,9 @@ async function CancelTrek(id) {
 
 <template>
 <div>
-    <h1><i class="fa-solid fa-user mt mt-4"></i> My Bookings</h1>
+    <h1><i class="fa-solid fa-user mt mt-4"></i> My Bookings
+    <RouterLink :to="{name: 'user'}" class="btn btn-success mt-4 float-end"><i class="fa-solid fa-arrow-left"></i> Go Back </RouterLink>
+    </h1>
     <p  class="text-muted">Welcome, {{ fullname }}!</p>
     <br>
     <br>

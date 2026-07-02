@@ -36,6 +36,9 @@ const StatusColor = computed(() => {
   } else if (trek.status === 'Completed') {
     return 'bg-secondary'
   }
+  else if (trek.status === 'Started') {
+    return 'bg-primary'
+  }
 })
 
 function formatDate(dateString) {
@@ -67,14 +70,14 @@ function formatDate(dateString) {
                             <div>
                             <p class="card-text"><strong> <i class="fa-solid fa-ticket"></i> Slots Available: </strong>{{ trek.available_slots }} slots</p>
                             <h5 class="card-text badge" :class="StatusColor"> <strong>Status: </strong>{{ trek.status }}</h5>
-                            <p class="card-text"><strong> <i class="fa-solid fa-user-group"></i> Registered Users: </strong>{{ registered_users }}</p>
+                            <p class="card-text"><strong> <i class="fa-solid fa-user-group"></i> Total Participants: </strong>{{ registered_users }}</p>
                             <h5 class="card-text mb-3">
                                 <span class="badge" :class="DifficultyColor"><strong>Difficulty: </strong>{{ trek.difficulty }}</span>
                             </h5>
                             <p class="card-text"><strong> <i class="fa-solid fa-indian-rupee-sign"></i> Price:</strong>{{ trek.price }}</p>
                             </div>
                             <div>
-                                <RouterLink class="btn btn-primary" :to="{name: 'staff', params: { id: trek.id } }">Manage Trek</RouterLink>
+                                <RouterLink class="btn btn-primary" :to="{name: 'staff_managetrek', params: { id: trek.id } }">Manage Trek</RouterLink>
                             </div>
                             
                         </div>

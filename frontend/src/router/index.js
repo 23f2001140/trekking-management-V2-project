@@ -44,6 +44,12 @@ const router = createRouter({
       component: () => import('../views/staff/staff_dashboard.vue'),
     },
     {
+      path: '/staff/managetrek/:id',
+      name: 'staff_managetrek',
+      meta: {role : 'staff'},
+      component: () => import('../views/staff/staff_trek_manage.vue'),
+    },
+    {
       path: '/admin',
       name: 'admin',
       meta: {role : 'admin'},

@@ -81,3 +81,10 @@ class Booking(db.Model):
                 'status': self.status,
                 'trek': self.trek.get_trek()
                 }
+    def get_booking_with_user(self):
+        return {'id': self.id, 
+                'user_id': self.user_id, 
+                'booking_date': self.booking_date, 
+                'status': self.status,
+                'user': self.user.get_user()
+                }

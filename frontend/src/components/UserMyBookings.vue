@@ -90,14 +90,16 @@ function CancelTrek() {
                             <p class="card-text"><strong> <i class="fa-solid fa-indian-rupee-sign"></i> Price Paid:</strong>{{ trek.price }}</p>
                             </div>
                             <div v-if="booking_status == 'Booked' && trek.status != 'Completed'">
-                                <button class="btn btn-outline-danger" @click.prevent="CancelTrek"><i class="fa-regular fa-circle-xmark"></i> Cancel Booking</button>
+                                <template v-if="trek.status === 'Open'">
+                                  <button class="btn btn-outline-danger" @click.prevent="CancelTrek"><i class="fa-regular fa-circle-xmark"></i> Cancel Booking</button>
+                                </template>
+                                <template v-else-if="trek.status === 'Closed' || trek.status === 'Pending'">
+                                  <button class="btn btn-secondary"  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="You Can't Cancel This Booking. Please Contact Support for further assistance."> <i class="fa-regular fa-circle-xmark"></i> Cancel Booking </button>
+                                </template>
                             </div>
                             <div v-else-if="booking_status === 'Cancelled'">
                                 <button class="btn btn-secondary" disabled>Cancelled</button>
                             </div>
-                            <!-- <div v-else-if="trek.status === 'Completed'">
-                                <button class="btn btn-secondary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="This trek is currently fully booked. Availability may open if a booking is cancelled.">Fully Booked</button>
-                            </div> -->
                             <div v-else-if="trek.status === 'Completed'">
                                 <button class="btn btn-secondary" disabled>Completed</button>
                             </div>

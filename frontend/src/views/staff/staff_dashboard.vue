@@ -23,7 +23,6 @@ async function getTrekDetails() {
   })
   const data = await res.json()
   if (res.ok) {
-    console.log(data)
     assigned_treks.value = data.treks
     registered_users.value = data.registered_users
   }
@@ -42,10 +41,11 @@ onMounted(async () => {
 
 <template>
 <div>
-    <h1><i class="fa-solid fa-user-tie"></i> Dashboard
-    <h4 class="float-end">Total Participants<i class='fa-solid fa-user-group'></i>: {{ total_p }} <br>  </h4></h1>
+    <h1><i class="fa-solid fa-user-tie"></i> Dashboard</h1>
+    <h4 class="float-end mt-4">Total Participants<i class='fa-solid fa-user-group'></i>: {{ total_p }}</h4>
     <br>
     <h5 class="text-muted">Welcome, {{ fullname }}! Here you can view your assigned treks and manage bookings.</h5>
+    <br>
     <br>
     <div v-if="assigned_treks">
         <StaffTrekCard v-for="trek in assigned_treks" :key="trek.id" :trek="trek " :registered_users="registered_users[trek.id]" />
