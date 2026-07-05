@@ -2,15 +2,15 @@
 import { useAuth } from '@/stores/auth'
 import { useFlash } from '@/stores/flash'
 import router from '../../router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import StaffTrekCard from '@/components/StaffTrekCard.vue'
 const auth = useAuth()
 const flash = useFlash()
 
 
-const fullname = auth.user.fullname
+const fullname = computed(() => auth.user? auth.user.fullname : '')
 const total_p = 5
-const assigned_treks = ref('')
+const assigned_treks = ref([])
 const registered_users = ref('')
 
 async function getTrekDetails() {
@@ -44,10 +44,10 @@ onMounted(async () => {
     <h1><i class="fa-solid fa-user-tie"></i> Dashboard</h1>
     <h4 class="float-end mt-4">Total Participants<i class='fa-solid fa-user-group'></i>: {{ total_p }}</h4>
     <br>
-    <h5 class="text-muted">Welcome, {{ fullname }}! Here you can view your assigned treks and manage bookings.</h5>
+    <h5 class="text-muted">Welcome, {{ fullname }} ! Here you can view your assigned treks and manage bookings.</h5>
     <br>
     <br>
-    <div v-if="assigned_treks">
+    <div v-if="assigned_treks.length > 0">
         <StaffTrekCard v-for="trek in assigned_treks" :key="trek.id" :trek="trek " :registered_users="registered_users[trek.id]" />
     </div>
     <div v-else>

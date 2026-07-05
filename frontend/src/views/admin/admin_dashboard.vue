@@ -1,13 +1,14 @@
 <script setup>
-import {ref , onMounted} from 'vue'
+import {ref , onMounted, computed} from 'vue'
 import {RouterLink} from 'vue-router'
 import router from '../../router'
 import { useFlash } from '@/stores/flash'
 import { useAuth } from '@/stores/auth'
+
 const auth = useAuth()
 const flash = useFlash()
 
-const fullname = auth.user?.fullname
+const fullname = computed(() => auth.user? auth.user.fullname : '')
 const treks = ref('')
 const users = ref('')
 const staff = ref('')
@@ -98,6 +99,9 @@ async function AddStaff() {
     scpassword.value = ''
     sfullname.value = ''
     sphone.value = ''
+    const modalEl = document.getElementById('addStaffModal')
+    const modalInstance = window.bootstrap.Modal.getInstance(modalEl) || new Modal(modalEl)
+    modalInstance.hide()
     await getAdminDashboard()
   }
   else {
@@ -111,7 +115,7 @@ async function AddStaff() {
 <h1><i class="fa-solid fa-gauge-high"></i> Dashboard
 <RouterLink :to="{ name: 'admin_add_trek' }" class="btn btn-success mt-2 float-end ms-2"><i class="fa-solid fa-plus"></i> New Trek </RouterLink>
 <button class="btn btn-success mt-2 float-end ms-2" data-bs-toggle="modal" data-bs-target="#addStaffModal"> <i class="fa-solid fa-user-plus"></i> Add Staff </button></h1>
-<p class="text-muted">Welcome, {{fullname }}!</p>
+<p class="text-muted">Welcome, {{fullname }} !</p>
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-md">
         <div class="modal-content">

@@ -46,6 +46,8 @@ def staff_required(f):
 class LoginApi(Resource):
     def post(self):
         data=request.get_json()
+        if not data:
+            return make_response(jsonify({'message': 'Please provide a valid data'}), 400)
         email = data.get('email')
         password=data.get('password')
         user=User.query.filter_by(email=email).first()
@@ -69,12 +71,14 @@ api.add_resource(LoginApi, '/login')
 class RegisterApi(Resource):
     def post(self):
         data=request.get_json()
+        if not data:
+            return make_response(jsonify({'message': 'Please provide a valid data'}), 400)
         email = data.get('email')
         password=data.get('password')
         cpassword=data.get('cpassword')
         fullname = data.get('fullname')
         phone = data.get('phone')
-        if not data or not email or not password or not cpassword or not fullname or not phone:
+        if not email or not password or not cpassword or not fullname or not phone:
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if password != cpassword:
             return make_response(jsonify({'message': 'Passwords do not match'}), 400)
@@ -127,6 +131,8 @@ class AdminTrekAPI(Resource):
     @admin_required
     def post(self):
         data = request.get_json()
+        if not data:
+            return make_response(jsonify({'message': 'Please provide a valid data'}), 400)
         name = data.get('name')
         location = data.get('location')
         difficulty = data.get('difficulty')
@@ -138,7 +144,7 @@ class AdminTrekAPI(Resource):
         end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
         status = data.get('status')
         image_url = data.get('image_url')
-        if not data or not name or not location or not difficulty or not price or not available_slots or not start_date or not end_date:
+        if not name or not location or not difficulty or not price or not available_slots or not start_date or not end_date:
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if price <= 0:
             return make_response(jsonify({'message': 'Price should be greater than or equal to 0'}), 400)
@@ -171,6 +177,8 @@ class AdminTrekAPI(Resource):
         if not id:
             return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
         data = request.get_json()
+        if not data:
+            return make_response(jsonify({'message': 'Please provide a valid data'}), 400)
         try:
             trek = Trek.query.filter_by(id=id).first()
             if not trek:
@@ -284,12 +292,14 @@ class AdminStaffAPI(Resource):
     @admin_required
     def post(self):
         data = request.get_json()
+        if not data:
+            return make_response(jsonify({'message': 'Please provide a valid data'}), 400)
         email = data.get('email')
         password = data.get('password')
         cpassword = data.get('cpassword')
         fullname = data.get('fullname')
         phone = data.get('phone')
-        if not data or not email or not password or not fullname or not phone or not cpassword:
+        if not email or not password or not fullname or not phone or not cpassword:
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if password != cpassword:
             return make_response(jsonify({'message': 'Passwords do not match'}), 400)
@@ -447,3 +457,51 @@ class StaffTrekManageAPI(Resource):
             return make_response(jsonify({'message': 'Trek Available Slots Updated Successfully'}), 200)
         
 api.add_resource(StaffTrekManageAPI, '/staff/trek/<int:id>')
+
+class ProfileUpdateAPI(Resource):
+    @jwt_required()
+    def put(self):
+        data = request.get_json()
+        
+        if not data:
+            return make_response(jsonify({'message': 'Please provide a valid data'}), 400)
+        
+        fullname = data.get('fullname')
+        email = data.get('email')
+        phone = data.get('phone')
+        password = data.get('password')
+        new_password = data.get('new_password')
+        cnpassword = data.get('cnpassword')
+    
+        if not fullname or not email or not phone or not password:
+            return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
+        if new_password and len(new_password) < 6:
+            return make_response(jsonify({'message': 'New Password must be at least 6 characters long'}), 400)
+        if new_password and new_password != cnpassword:
+            return make_response(jsonify({'message': 'New Passwords do not match'}), 400)
+        
+        user = User.query.get(get_jwt_identity())
+        if not user:
+            return make_response(jsonify({'message': 'You are not authorized to update your profile'}), 401)
+        if not check_password_hash(user.passhash, password):
+            return make_response(jsonify({'message': 'Wrong password'}), 400)
+        if email != user.email:
+            if user.role == 'staff':
+                return make_response(jsonify({'message': 'Staff is not allowed to change their email'}), 400)
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                return make_response(jsonify({'message': 'Email already exists'}), 400)
+        if phone != user.phone:
+            existing_user = User.query.filter_by(phone=phone).first()
+            if existing_user:
+                return make_response(jsonify({'message': 'Phone number already exists'}), 400)
+        
+        user.fullname = fullname
+        user.email = email
+        user.phone = phone
+        if new_password:
+            user.passhash = generate_password_hash(new_password)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Profile updated successfully' , 'user': user.get_user()}), 200)
+
+api.add_resource(ProfileUpdateAPI, '/update_profile')

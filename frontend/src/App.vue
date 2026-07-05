@@ -2,11 +2,15 @@
 import { RouterView } from 'vue-router'
 import FlashMessage from './components/FlashMessage.vue'
 import NavBar from './components/NavBar.vue'
+import ProfileUpdate from '@/components/ProfileUpdate.vue'
+import { useAuth } from '@/stores/auth'
+const auth = useAuth()
 </script>
 
 <template>
   <FlashMessage />
   <NavBar />
+  <ProfileUpdate v-if="auth.user"/>
   <div class="container">
     <br>
       <RouterView v-slot="{ Component, route }">

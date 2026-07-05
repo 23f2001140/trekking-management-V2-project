@@ -66,8 +66,10 @@ const logout = () => {
               <RouterLink class="nav-link" :to="{name: 'admin'}"> Bookings </RouterLink>
             </li>
 
-            <li class="nav-item">
-              <RouterLink class="nav-link" :to="{name: 'admin'}"> Profile </RouterLink>
+            <li class="nav-item">             
+              <a class="nav-link"  href="#" data-bs-toggle="modal" data-bs-target="#updateProfileModal" >
+                <i class="fa-solid fa-user"></i>  Profile
+              </a>   
             </li>
 
             <li class="nav-item">
@@ -84,7 +86,9 @@ const logout = () => {
             </li>
 
             <li class="nav-item">
-              <RouterLink class="nav-link" :to="{name: 'staff'}"> Profile </RouterLink>
+              <a class="nav-link"  href="#" data-bs-toggle="modal" data-bs-target="#updateProfileModal" >
+                <i class="fa-solid fa-user"></i>  Profile
+              </a>      
             </li>
 
             <li class="nav-item">
@@ -101,7 +105,9 @@ const logout = () => {
             </li>
 
             <li class="nav-item">
-              <RouterLink class="nav-link" :to="{name: 'user'}  "> Profile </RouterLink>
+              <a class="nav-link"  href="#" data-bs-toggle="modal" data-bs-target="#updateProfileModal" >
+                      <i class="fa-solid fa-user"></i>  Profile
+              </a>      
             </li>
             
             <li class="nav-item">

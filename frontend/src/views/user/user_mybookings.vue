@@ -2,15 +2,15 @@
 import { useAuth } from '@/stores/auth'
 import { useFlash } from '@/stores/flash'
 import router from '../../router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import UserMyBookings from '@/components/UserMyBookings.vue'
 import { RouterLink } from 'vue-router'
 const auth = useAuth()
 const flash = useFlash()
 
-const fullname = auth.user.fullname
-const ongoing_bookings = ref('')
-const past_bookings = ref('')
+const fullname = computed(() => auth.user? auth.user.fullname : '')
+const ongoing_bookings = ref([])
+const past_bookings = ref([])
 
 async function getBookings() {
   const res = await fetch(`http://127.0.0.1:5000/api/user/booking`, {
@@ -65,7 +65,7 @@ async function CancelTrek(id) {
     <h1><i class="fa-solid fa-user mt mt-4"></i> My Bookings
     <RouterLink :to="{name: 'user'}" class="btn btn-success mt-4 float-end"><i class="fa-solid fa-arrow-left"></i> Go Back </RouterLink>
     </h1>
-    <p  class="text-muted">Welcome, {{ fullname }}!</p>
+    <p  class="text-muted">Hello, {{ fullname }} ! Here you can view your booking records.</p>
     <br>
     <br>
     <div v-if="ongoing_bookings.length > 0">

@@ -3,10 +3,11 @@ import {ref , onMounted} from 'vue'
 import AdminTrekCard from '@/components/AdminTrekCard.vue'
 import { useFlash } from '@/stores/flash'
 import { useAuth } from '@/stores/auth'
+import router from '../../router'
 const auth = useAuth()
 const flash = useFlash()
 
-const treks = ref('')
+const treks = ref([])
 
 async function getTrekDetails() {
   const res = await fetch(`http://127.0.0.1:5000/api/admin/treks`, {
@@ -37,7 +38,7 @@ onMounted(async () => {
 
 <template>
 <div>
-    <div v-if="treks">
+    <div v-if="treks.length > 0">
     <h1 class="mt-2"> View All Treks <i class="fa-solid fa-route"></i>
         <RouterLink class="btn btn-success mt-2 float-end" to="/admin/add_trek"> <i class="fa-solid fa-plus"></i> Add A New Trek</RouterLink>
     </h1>

@@ -32,12 +32,19 @@ export const useAuth = defineStore('auth', {
         },
 
         restore() {
-            const user = JSON.parse(localStorage.getItem('user'))
+            const stored_user = localStorage.getItem('user')
             const token = localStorage.getItem('token')
 
-            if (user && token) {
-                this.user = user
+            if (!stored_user || !token) {
+               this.user = null
+               this.token = null
+               return
+            }
+            try {
+                this.user = JSON.parse(stored_user)
                 this.token = token
+            } catch (e) {
+                this.logout()
             }
         },
     },

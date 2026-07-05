@@ -1,6 +1,6 @@
 <script setup>
 import { useAuth } from '@/stores/auth'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useFlash } from '@/stores/flash'
 import { useRoute } from 'vue-router'
 import router from '../../router'
@@ -9,7 +9,7 @@ const route = useRoute()
 const flash = useFlash()
 const auth = useAuth()
 
-const fullname = auth.user.fullname
+const fullname = computed(() => auth.user? auth.user.fullname : '')
 
 const trek_id = route.params.id
 
@@ -111,7 +111,7 @@ function formatDate(dateString) {
         <h1>Manage Trek And View Participants
             <RouterLink :to="{ name: 'staff' }" class="btn btn-success mt-2 float-end ms-2"><i class="fa-solid fa-arrow-left"></i> Go Back </RouterLink>
         </h1>
-        <p>Hello, {{ fullname }}! Here you can view participants and update the status and slots of the trek.</p>
+        <p>Hello, {{ fullname }} ! Here you can view participants and update the status and slots of the trek.</p>
         <br>
         <div class="row g-3 d-flex justify-content-between">
             <div class="card shadow-sm p-4" style="width: 18rem; border-radius: 14px;">

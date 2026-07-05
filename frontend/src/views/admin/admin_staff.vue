@@ -77,7 +77,7 @@ async function activateStaff(id) {
 
 <template>
 <div>
-<div v-if="users">
+<div v-if="users.length > 0">
     <h3 class="mt-4"> View All Staff Of <strong>TREKCENTRAL</strong> <i class="fa-solid fa-user-group"></i></h3>
     <br>
 
