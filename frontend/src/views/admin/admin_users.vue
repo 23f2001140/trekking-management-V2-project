@@ -1,13 +1,14 @@
 <script setup>
-import {ref , onMounted} from 'vue'
+import {ref , onMounted, watch} from 'vue'
 import router from '../../router'
 import { useFlash } from '@/stores/flash'
 import { useAuth } from '@/stores/auth'
 const auth = useAuth()
 const flash = useFlash()
 
-const search = ref('')
+const name_id = ref('')
 const users = ref([])
+const all_users = ref([])
 
 
 
@@ -21,6 +22,7 @@ async function getUsers() {
   })
   const data = await res.json()
   if (res.ok) {
+    all_users.value = data
     users.value = data
   }
   else {
@@ -33,6 +35,8 @@ async function getUsers() {
 onMounted(async () => {
  await getUsers()
 })
+
+
 
 async function blacklistUser(id) {
   const res = await fetch(`http://127.0.0.1:5000/api/admin/users/${id}`, {
@@ -75,23 +79,46 @@ async function activateUser(id) {
     flash.showFlash(data.message, 'danger')
   }   
 }
+
+
+function isNumber(value) {
+  return !isNaN(value) && !isNaN(parseFloat(value));
+}
+
+watch(name_id, function () {
+  if (name_id.value == '') {
+    users.value = all_users.value
+  }
+  else if (isNumber(name_id.value)) {
+    users.value = all_users.value.filter(function (user) {
+      return user.id == name_id.value
+    })
+  }
+  else {
+    users.value = all_users.value.filter(function (user) {
+      let user_name = user.fullname.toLowerCase()
+      let typed_name = name_id.value.toLowerCase()
+      return user_name.includes(typed_name)
+    })
+  }
+})
 </script>
 
 <template>
 <div>
-<div v-if="users.length > 0">
-    <h3 class="mt-4"> View All Users Of <strong>TREKCENTRAL</strong> <i class="fa-solid fa-user-group"></i></h3>
-    <br>
-
-    <form class="d-flex align-items-center gap-2" role="search" @submit.prevent>
-        <input class="form-control w-50" type="search" placeholder="Search by Name or user id" aria-label="user" id="user" name="user" v-model="search" >
-        <button class="btn btn-outline-success" type="submit">
-            <i class="fa-solid fa-magnifying-glass"></i> Search
-        </button>
-    </form>
-
-    <br>
-
+  <h3 class="mt-4"> View All Users Of <strong>TREKCENTRAL</strong> <i class="fa-solid fa-user-group"></i></h3>
+  <br>
+  
+  <form class="d-flex align-items-center gap-2" role="search" @submit.prevent>
+    <input class="form-control w-50" type="search" placeholder="Search by Name or user id" aria-label="user" id="user" name="user" v-model="name_id" >
+    <button class="btn btn-outline-success" type="submit">
+      <i class="fa-solid fa-magnifying-glass"></i> Search
+    </button>
+  </form>
+  
+  <br>
+  
+  <div v-if="users.length > 0">
     <table class="table table-hover shadow-lg p-4">
         <thead class="table-primary">
             <tr>
@@ -130,10 +157,18 @@ async function activateUser(id) {
 </div>
 
 <div v-else>
+  <template v-if="all_users.length === 0">
     <h1 class="text-center mt-4">
         No Users Are There
         <i class="fa-regular fa-face-frown"></i>
     </h1>
+  </template>
+  <template v-else>
+    <h1 class="text-center mt-4">
+      No Users Found With This Name Or Id
+      <i class="fa-regular fa-face-frown"></i>
+    </h1>
+  </template>
 </div>
 
 <br>

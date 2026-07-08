@@ -88,3 +88,13 @@ class Booking(db.Model):
                 'status': self.status,
                 'user': self.user.get_user()
                 }
+    def admin_get_booking(self):
+        return {'id': self.id, 
+                'user_id': self.user_id, 
+                'trek_id': self.trek_id, 
+                'booking_date': self.booking_date, 
+                'status': self.status,
+                'user_name': self.user.fullname,
+                'trek_name': self.trek.name,
+                'trek_location': self.trek.location
+                }

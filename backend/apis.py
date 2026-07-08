@@ -109,7 +109,17 @@ class AdminDashboard(Resource):
         treks=Trek.query.count()
         bookings=Booking.query.count()
         
-        return make_response(jsonify({ 'user_count': user_count, 'staff_count': staff_count, 'treks': treks, 'bookings': bookings}), 200)
+        trekss=Trek.query.all()
+        chart_labels=[]
+        chart_count=[]
+        revenue=[]
+        for trek in trekss:
+            chart_labels.append(trek.name)
+            bookings_count=len([booking for booking in trek.bookings if booking.status == 'Booked'])
+            chart_count.append(bookings_count)
+            revenue.append(bookings_count*trek.price)
+        
+        return make_response(jsonify({ 'user_count': user_count, 'staff_count': staff_count, 'treks': treks, 'bookings': bookings, 'chart_labels': chart_labels, 'chart_count': chart_count, 'revenue': revenue}), 200)
 
 api.add_resource(AdminDashboard, '/admin')
 
@@ -319,6 +329,17 @@ class AdminStaffAPI(Resource):
         return make_response(jsonify({'message': 'Staff created successfully'}), 201)
 api.add_resource(AdminStaffAPI, '/admin/staff')
 
+class AdminBookingsAPI(Resource):
+    @admin_required
+    def get(self):
+        bookings = Booking.query.all()
+        bookings.reverse()
+        response = []
+        for booking in bookings:
+            response.append(booking.admin_get_booking())
+        return make_response(jsonify(response), 200)
+    
+api.add_resource(AdminBookingsAPI, '/admin/bookings')   
 
 class UserDashboardAPI(Resource):
     @user_required

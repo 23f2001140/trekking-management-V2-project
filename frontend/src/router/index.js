@@ -84,6 +84,12 @@ const router = createRouter({
       name: 'admin_update_trek',
       meta: {role : 'admin'},
       component: () => import('../views/admin/admin_update_trek.vue'),
+    },
+    {
+      path: '/admin/bookings',
+      name: 'admin_bookings',
+      meta: {role : 'admin'},
+      component: () => import('../views/admin/admin_bookings.vue'),
     }
   ],
 })

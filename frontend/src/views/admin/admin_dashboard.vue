@@ -14,6 +14,15 @@ const users = ref('')
 const staff = ref('')
 const bookings = ref('')
 
+const chart_labels = ref([])
+const chart_count = ref([])
+const chartCanvas = ref(null)
+let myChart = null
+
+const revenue = ref([])
+const revenueCanvas = ref(null)
+let myRevenueChart = null
+
 async function getAdminDashboard() {
   const res = await fetch('http://127.0.0.1:5000/api/admin', {
     method: 'GET',
@@ -28,12 +37,108 @@ async function getAdminDashboard() {
     users.value = data.user_count
     staff.value = data.staff_count
     bookings.value = data.bookings
+
+    chart_labels.value = data.chart_labels
+    chart_count.value = data.chart_count
+    revenue.value = data.revenue
+    renderChart()
+    renderRevenueChart()
   }
   else {
     flash.showFlash(data.message, 'danger')
     auth.logout()
     router.push('/')
   }
+}
+
+function renderChart() {
+  if (myChart) {
+    myChart.destroy()
+  }
+
+  myChart = new Chart(chartCanvas.value, {
+    type: 'bar',
+    data: {
+      labels: chart_labels.value,
+      datasets: [{
+        label: 'Treks Popularity',
+        data: chart_count.value,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 5,
+          ticks: {
+            stepSize: 1
+          },
+          title: {
+            display: true,
+            text: 'Total Bookings',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Treks',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+function renderRevenueChart() {
+  if (myRevenueChart) {
+    myRevenueChart.destroy()
+  }
+
+  myRevenueChart = new Chart(revenueCanvas.value, {
+    type: 'bar',
+    data: {
+      labels: chart_labels.value,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: revenue.value,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Revenue (₹)',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Treks',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        }
+      }
+    }
+  })
 }
 
 onMounted(async () => {
@@ -197,7 +302,7 @@ async function AddStaff() {
   </div>
   <div class="col-sm-3">
     <div class="card text-bg-warning mb-3">
-      <RouterLink :to="{ name: 'admin' }" class="text-decoration-none text-dark">
+      <RouterLink :to="{ name: 'admin_bookings' }" class="text-decoration-none text-dark">
         <div class="card-body">
           <h5 class="card-title fa-solid fa-list-check"> </h5>
           <h2 class="card-text"><strong>{{ bookings }}</strong></h2>
@@ -206,6 +311,14 @@ async function AddStaff() {
     </RouterLink>
     </div>
   </div>
+</div>
+<div class="mt-4"  style="width: 70%; margin: 10px auto;">
+    <h3>Treks Popularity <i class="fa-solid fa-chart-column"></i></h3>
+    <canvas ref="chartCanvas"></canvas>
+</div>
+<div class="mt-4"  style="width: 70%; margin: 10px auto;">
+    <h3>Revenue <i class="fa-solid fa-indian-rupee-sign"></i></h3>
+    <canvas ref="revenueCanvas"></canvas>
 </div>
 </div>
 </template>
