@@ -6,8 +6,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity , verify_jwt_in_request, get_jwt  
 from functools import wraps
 from datetime import datetime
+from flask_caching import Cache
 
 api = Api(prefix='/api')
+cache = Cache()
 
 def admin_required(f):
     @wraps(f)
@@ -42,6 +44,16 @@ def staff_required(f):
         return f(*args, **kwargs)
     return decorated
 
+def not_blacklisted(f):
+    @wraps(f)
+    @jwt_required()
+    def decorated(*args, **kwargs):
+        id= get_jwt_identity()
+        user = User.query.filter_by(id=id).first()
+        if user.is_blacklisted:
+            return make_response(jsonify({'message': 'Your account has been blacklisted Please contatct support at support@trekcentral.com'}), 401)
+        return f(*args, **kwargs)
+    return decorated
 
 class LoginApi(Resource):
     def post(self):
@@ -100,9 +112,9 @@ class RegisterApi(Resource):
 api.add_resource(RegisterApi, '/register')
 
 
-
 class AdminDashboard(Resource):
     @admin_required
+    @cache.cached()
     def get(self):
         user_count=User.query.filter_by(role='user').count()
         staff_count=User.query.filter_by(role='staff').count()
@@ -132,10 +144,17 @@ class AdminTrekAPI(Resource):
                 return make_response(jsonify({'message': 'Trek does not exist'}), 404)
             return make_response(jsonify(trek.get_trek()), 200)
         else:
+            
+            cached_treks = cache.get('all_treks')
+            if cached_treks:
+                return make_response(jsonify(cached_treks), 200)
+            
             treks = Trek.query.all()
             response = []
             for trek in treks:
                 response.append(trek.get_trek())
+                
+            cache.set('all_treks', response)
             return make_response(jsonify(response), 200)
     
     @admin_required
@@ -178,6 +197,7 @@ class AdminTrekAPI(Resource):
             trek = Trek(name=name, location=location, difficulty=difficulty, price=price, description=description, available_slots=available_slots, assigned_staff_id=assigned_staff_id, start_date=start_date, end_date=end_date, duration=duration, status=status, image_url=image_url)
             db.session.add(trek)
             db.session.commit()
+            cache.clear()
             return make_response(jsonify({'message': 'Trek created successfully'}), 201)
         except:
             return make_response(jsonify({'message': 'Something went wrong while creating trek'}), 500)
@@ -240,6 +260,7 @@ class AdminTrekAPI(Resource):
         trek.status = status
         trek.image_url = image_url
         db.session.commit()
+        cache.clear()
         return make_response(jsonify({'message': 'Trek updated successfully'}), 200)
     
     @admin_required
@@ -251,6 +272,7 @@ class AdminTrekAPI(Resource):
             return make_response(jsonify({'message': 'Trek does not exist'}), 404)
         db.session.delete(trek)
         db.session.commit()
+        cache.clear()
         return make_response(jsonify({'message': 'Trek deleted successfully'}), 200)
 
 
@@ -343,7 +365,15 @@ api.add_resource(AdminBookingsAPI, '/admin/bookings')
 
 class UserDashboardAPI(Resource):
     @user_required
+    @not_blacklisted
     def get(self):
+        
+        userid=get_jwt_identity()
+        cache_key=f'user_{userid}'
+        cached_user=cache.get(cache_key)
+        if cached_user:
+            return make_response(jsonify(cached_user), 200)
+        
         treks = Trek.query.filter_by(status='Open').all()
         upcoming_treks = Trek.query.filter_by(status='Approved').all()
         bookings=Booking.query.filter_by(user_id=get_jwt_identity()).all()
@@ -354,11 +384,16 @@ class UserDashboardAPI(Resource):
             response.append(trek.get_trek())
         for trek in upcoming_treks:
             response2.append(trek.get_trek())
-        return make_response(jsonify({'treks': response, 'upcoming_treks': response2,'bookings_status': bookings_status}), 200)
+            
+        result={'treks': response, 'upcoming_treks': response2,'bookings_status': bookings_status}
+        
+        cache.set(cache_key, result)
+        return make_response(jsonify(result), 200)
 api.add_resource(UserDashboardAPI, '/user')
 
 class UserBookingAPI(Resource):
     @user_required
+    @not_blacklisted
     def get(self):
         bookings = Booking.query.filter_by(user_id=get_jwt_identity()).all()
         ongoing_bookings = [booking for booking in bookings if booking.trek.status in ['Open' , 'Closed' , 'Started'] and booking.status == 'Booked']
@@ -373,6 +408,7 @@ class UserBookingAPI(Resource):
 
 
     @user_required
+    @not_blacklisted
     def post(self, id):
         if not id:
             return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
@@ -393,9 +429,11 @@ class UserBookingAPI(Resource):
         booking = Booking(user_id=get_jwt_identity(), trek_id=id, booking_date=datetime.now())
         db.session.add(booking)
         db.session.commit()
+        cache.clear()
         return make_response(jsonify({'message': 'Booking successful !'}), 201)
     
     @user_required
+    @not_blacklisted
     def patch(self, id):
         if not id:
             return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
@@ -407,25 +445,37 @@ class UserBookingAPI(Resource):
         booking.trek.available_slots += 1
         booking.status = 'Cancelled'
         db.session.commit()
+        cache.clear()
         return make_response(jsonify({'message': 'Booking cancelled successfully'}), 200)
 
 api.add_resource(UserBookingAPI, '/user/booking' , '/user/booking/<int:id>')
 
 class StaffDashboardAPI(Resource):
     @staff_required
+    @not_blacklisted
     def get(self):
+        staff_id=get_jwt_identity()
+        cache_key=f'staff_{staff_id}'
+        cached_staff=cache.get(cache_key)
+        if cached_staff:
+            return make_response(jsonify(cached_staff), 200)
+        
         treks = Trek.query.filter_by(assigned_staff_id=get_jwt_identity()).all()
         registered_users = {}
         response = []
         for trek in treks:
             response.append(trek.get_trek())
             registered_users[trek.id] = len([booking for booking in trek.bookings if booking.status == 'Booked'])
-        return make_response(jsonify({'treks': response , 'registered_users': registered_users}), 200)
+        
+        result={'treks': response , 'registered_users': registered_users}
+        cache.set(cache_key, result)
+        return make_response(jsonify(result), 200)
 api.add_resource(StaffDashboardAPI, '/staff')
 
 class StaffTrekManageAPI(Resource):
     
     @staff_required
+    @not_blacklisted
     def get(self, id):
         if not id:
             return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
@@ -451,6 +501,7 @@ class StaffTrekManageAPI(Resource):
         return make_response(jsonify({'trek': response, 'registered_users': registered_users, 'cancelled_users': cancelled_users}), 200)
 
     @staff_required
+    @not_blacklisted
     def patch(self, id):
         if not id:
             return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
@@ -469,18 +520,21 @@ class StaffTrekManageAPI(Resource):
                 return make_response(jsonify({'message': 'Invalid status provided'}), 400)
             trek.status = status
             db.session.commit()
+            cache.clear()
             return make_response(jsonify({'message': 'Trek Status Updated Successfully'}), 200)
         if available_slots != None:
             if available_slots < 0:
                 return make_response(jsonify({'message': 'Available Slots should be greater than or equal to 0'}), 400)
             trek.available_slots = available_slots
             db.session.commit()
+            cache.clear()
             return make_response(jsonify({'message': 'Trek Available Slots Updated Successfully'}), 200)
         
 api.add_resource(StaffTrekManageAPI, '/staff/trek/<int:id>')
 
 class ProfileUpdateAPI(Resource):
     @jwt_required()
+    @not_blacklisted
     def put(self):
         data = request.get_json()
         

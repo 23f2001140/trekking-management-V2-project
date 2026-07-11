@@ -4,7 +4,7 @@ from models import db, User, Trek, Booking
 from werkzeug.security import generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
-from apis import api
+from apis import api , cache
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
@@ -27,6 +27,8 @@ def create_app():
 app = create_app()
 jwt = JWTManager(app)
 api.init_app(app)
+cache.init_app(app)
+    
 CORS(app)
 
 if ( __name__ == '__main__'):
