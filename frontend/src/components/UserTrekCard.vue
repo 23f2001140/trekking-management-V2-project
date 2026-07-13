@@ -86,7 +86,12 @@ function bookTrek() {
                             <p class="card-text"><strong> <i class="fa-solid fa-indian-rupee-sign"></i> Price:</strong>{{ trek.price }}</p>
                             </div>
                             <div v-if="booking_status">
+                              <template v-if="booking_status === 'Booked'">
                                 <button class="btn btn-secondary" disabled>{{ booking_status }}</button>
+                              </template>
+                              <template v-else-if="booking_status === 'Cancelled'">
+                                <button class="btn btn-secondary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="You Cancelled Booking for this trek! You can't book this trek again.">{{ booking_status }}</button>
+                              </template>
                             </div>
                             <div v-else-if="trek.status === 'Open' && trek.available_slots > 0">
                                 <button class="btn btn-primary" @click.prevent="bookTrek">Book Now</button>

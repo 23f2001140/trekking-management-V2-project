@@ -87,6 +87,9 @@ watch([difficulty, location, duration], function () {
 })
 
 async function bookTrek(id) {
+  if (!confirm('Are you sure you want to book this trek?')) {
+    return
+  }
   const res = await fetch(`http://127.0.0.1:5000/api/user/booking/${id}`, {
     method: 'POST',
     headers: {

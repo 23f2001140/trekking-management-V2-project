@@ -126,10 +126,11 @@ class AdminDashboard(Resource):
         chart_count=[]
         revenue=[]
         for trek in trekss:
-            chart_labels.append(trek.name)
             bookings_count=len([booking for booking in trek.bookings if booking.status == 'Booked'])
-            chart_count.append(bookings_count)
-            revenue.append(bookings_count*trek.price)
+            if bookings_count > 0:
+                chart_labels.append(trek.name)
+                chart_count.append(bookings_count)
+                revenue.append(bookings_count*trek.price)
         
         return make_response(jsonify({ 'user_count': user_count, 'staff_count': staff_count, 'treks': treks, 'bookings': bookings, 'chart_labels': chart_labels, 'chart_count': chart_count, 'revenue': revenue}), 200)
 
@@ -186,6 +187,9 @@ class AdminTrekAPI(Resource):
         if not assigned_staff_id:
             assigned_staff_id = None
             status = 'Pending'
+        staff = User.query.get(assigned_staff_id)
+        if staff.is_blacklisted:
+            return make_response(jsonify({'message': 'You can not assign blacklisted staff to trek'}), 400)
         
         if start_date > end_date:
             return make_response(jsonify({'message': 'Start Date should be earlier than End Date'}), 400)
@@ -240,6 +244,9 @@ class AdminTrekAPI(Resource):
         if not assigned_staff_id:
             assigned_staff_id = None
             status = 'Pending'
+        staff = User.query.get(assigned_staff_id)
+        if staff.is_blacklisted:
+            return make_response(jsonify({'message': 'You can not assign blacklisted staff to trek'}), 400)
         
         if start_date > end_date:
             return make_response(jsonify({'message': 'Start Date should be earlier than End Date'}), 400)

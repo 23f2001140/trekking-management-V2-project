@@ -167,7 +167,7 @@ async function addTrek() {
     <label for="assigned_staff_id" class="form-label"><strong>Assign Staff To Trek</strong></label>
     <select v-model="assigned_staff_id" class="form-select" id="assigned_staff_id">
       <option value="">-- Select Staff --</option>
-      <option v-for="{ id, fullname } in staff" :key="id" :value="id">{{ fullname }}</option>
+      <option v-for="{ id, fullname , is_blacklisted} in staff" :key="id" :value="id" :disabled="is_blacklisted">{{ fullname }} {{ is_blacklisted ? '(Blacklisted)' : '' }}</option>
     </select>
   </div>
 
