@@ -226,7 +226,7 @@ class AdminTrekAPI(Resource):
         difficulty = data.get('difficulty')
         price = data.get('price')
         description = data.get('description')
-        available_slots = data.get('available_slots')
+        available_slots = data.get('available_slots') or None
         assigned_staff_id = data.get('assigned_staff_id')
         start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
         end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
@@ -236,6 +236,8 @@ class AdminTrekAPI(Resource):
             return make_response(jsonify({'message': 'Please provide all the required fields'}), 400)
         if price <= 0:
             return make_response(jsonify({'message': 'Price should be greater than or equal to 0'}), 400)
+        if available_slots is None:
+            return make_response(jsonify({'message': 'Please provide available slots'}), 400)
         if available_slots and available_slots < 0:
             return make_response(jsonify({'message': 'Available Slots should be greater than or equal to 0'}), 400)
         if assigned_staff_id and not status:
@@ -279,6 +281,8 @@ class AdminTrekAPI(Resource):
         trek = Trek.query.filter_by(id=id).first()
         if not trek:
             return make_response(jsonify({'message': 'Trek does not exist'}), 404)
+        if trek.bookings:
+            return make_response(jsonify({'message': 'Trek cannot be deleted as it has bookings'}), 400)
         db.session.delete(trek)
         db.session.commit()
         cache.clear()
@@ -452,6 +456,8 @@ class UserBookingAPI(Resource):
             return make_response(jsonify({'message': 'Booking does not exist'}), 404)
         if booking.user_id != int(get_jwt_identity()):
             return make_response(jsonify({'message': 'You are not authorized to cancel this booking!'}), 401)
+        if booking.status == 'Cancelled':
+            return make_response(jsonify({'message': 'Booking is already cancelled'}), 400)
         booking.trek.available_slots += 1
         booking.status = 'Cancelled'
         db.session.commit()
