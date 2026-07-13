@@ -170,8 +170,8 @@ def send_monthly_reminders_admin():
             
         
 celery.conf.beat_schedule = {
-    "daily-reminders": { "task": "celery_app.send_daily_reminders", "schedule": crontab(hour=20, minute=40) },
-    "monthly-reminders-admin": { "task": "celery_app.send_monthly_reminders_admin", "schedule": crontab(day_of_month=13, hour=4, minute=23) }
+    "daily-reminders": { "task": "celery_app.send_daily_reminders", "schedule": crontab(hour=17, minute=2) },
+    "monthly-reminders-admin": { "task": "celery_app.send_monthly_reminders_admin", "schedule": crontab(day_of_month=13, hour=17, minute=2) }
 }
 
 

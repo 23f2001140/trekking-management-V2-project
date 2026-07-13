@@ -70,10 +70,6 @@ function renderChart() {
       scales: {
         y: {
           beginAtZero: true,
-          max: 5,
-          ticks: {
-            stepSize: 1
-          },
           title: {
             display: true,
             text: 'Total Bookings',
@@ -205,7 +201,7 @@ async function AddStaff() {
     sfullname.value = ''
     sphone.value = ''
     const modalEl = document.getElementById('addStaffModal')
-    const modalInstance = window.bootstrap.Modal.getInstance(modalEl) || new Modal(modalEl)
+    const modalInstance = window.bootstrap.Modal.getInstance(modalEl) || new window.bootstrap.Modal(modalEl)
     modalInstance.hide()
     await getAdminDashboard()
   }

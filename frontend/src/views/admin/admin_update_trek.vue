@@ -39,10 +39,10 @@ async function getTrekDetails() {
     price.value = data.price
     description.value = data.description
     available_slots.value = data.available_slots
-    assigned_staff_id.value = data.assigned_staff_id ? data.assigned_staff_id : '',
+    assigned_staff_id.value = data.assigned_staff_id ? data.assigned_staff_id : ''
     start_date.value = new Date(data.start_date).toISOString().split('T')[0]
     end_date.value = new Date(data.end_date).toISOString().split('T')[0]
-    status.value = data.status === 'Pending'? "" : data.status,
+    status.value = data.status === 'Pending'? "" : data.status
     image_url.value = data.image_url
   }
   else {

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useFlash } from '@/stores/flash'
 
 const flash = useFlash()
@@ -58,9 +58,10 @@ function CancelTrek() {
   emit('cancel-trek')
 }
 
-
+onMounted(() => {
   const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
   const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+})
 
 </script>
 

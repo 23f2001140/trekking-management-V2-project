@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed , onMounted } from 'vue'
 import { useFlash } from '@/stores/flash'
 
 const flash = useFlash()
@@ -54,10 +54,10 @@ function bookTrek() {
   emit('book-trek', trek.id)
 }
 
-
+onMounted(() => {
   const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
   const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
-
+})
 </script>
 
 <template>

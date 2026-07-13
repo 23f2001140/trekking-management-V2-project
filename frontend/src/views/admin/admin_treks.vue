@@ -102,7 +102,7 @@ watch([difficulty, location, duration], function () {
   <br>
   <br>
     <div v-if="treks.length > 0">
-        <AdminTrekCard v-for="trek in treks" :trek="trek" />
+        <AdminTrekCard v-for="trek in treks" :key="trek.id" :trek="trek" />
     </div>
     <div v-else>
       <template v-if="all_treks.length === 0">

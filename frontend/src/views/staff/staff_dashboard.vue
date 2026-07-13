@@ -9,7 +9,7 @@ const flash = useFlash()
 
 
 const fullname = computed(() => auth.user? auth.user.fullname : '')
-const total_p = 5
+const total_p = ref('')
 const assigned_treks = ref([])
 const registered_users = ref('')
 
@@ -25,6 +25,7 @@ async function getTrekDetails() {
   if (res.ok) {
     assigned_treks.value = data.treks
     registered_users.value = data.registered_users
+    total_p.value = data.total_participants
   }
   else {
     flash.showFlash(data.message, 'danger')

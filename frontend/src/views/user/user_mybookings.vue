@@ -43,7 +43,6 @@ async function getBookings() {
   })
   const data = await res.json()
   if (res.ok) {
-    console.log(data)
     ongoing_bookings.value = data.ongoing
     past_bookings.value = data.past
 

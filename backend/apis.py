@@ -187,9 +187,10 @@ class AdminTrekAPI(Resource):
         if not assigned_staff_id:
             assigned_staff_id = None
             status = 'Pending'
-        staff = User.query.get(assigned_staff_id)
-        if staff.is_blacklisted:
-            return make_response(jsonify({'message': 'You can not assign blacklisted staff to trek'}), 400)
+        if assigned_staff_id:
+            staff = User.query.get(assigned_staff_id)
+            if staff and staff.is_blacklisted:
+                return make_response(jsonify({'message': 'You can not assign blacklisted staff to trek'}), 400)
         
         if start_date > end_date:
             return make_response(jsonify({'message': 'Start Date should be earlier than End Date'}), 400)
@@ -244,9 +245,10 @@ class AdminTrekAPI(Resource):
         if not assigned_staff_id:
             assigned_staff_id = None
             status = 'Pending'
-        staff = User.query.get(assigned_staff_id)
-        if staff.is_blacklisted:
-            return make_response(jsonify({'message': 'You can not assign blacklisted staff to trek'}), 400)
+        if assigned_staff_id:
+            staff = User.query.get(assigned_staff_id)
+            if staff and staff.is_blacklisted:
+                return make_response(jsonify({'message': 'You can not assign blacklisted staff to trek'}), 400)
         
         if start_date > end_date:
             return make_response(jsonify({'message': 'Start Date should be earlier than End Date'}), 400)
@@ -297,7 +299,7 @@ class AdminUserAPI(Resource):
     
     @admin_required
     def patch(self, id):
-        if not id and not id.isdigit():
+        if not id:
             return make_response(jsonify({'message': 'Please provide a valid id'}), 400)
         data = request.get_json()
         user = User.query.filter_by(id=id).first()
@@ -355,6 +357,7 @@ class AdminStaffAPI(Resource):
         user = User(email=email, phone=phone, passhash=generate_password_hash(password), fullname=fullname, role='staff')
         db.session.add(user)
         db.session.commit()
+        cache.clear()
         return make_response(jsonify({'message': 'Staff created successfully'}), 201)
 api.add_resource(AdminStaffAPI, '/admin/staff')
 
@@ -470,11 +473,13 @@ class StaffDashboardAPI(Resource):
         treks = Trek.query.filter_by(assigned_staff_id=get_jwt_identity()).all()
         registered_users = {}
         response = []
+        total_participants = 0
         for trek in treks:
             response.append(trek.get_trek())
             registered_users[trek.id] = len([booking for booking in trek.bookings if booking.status == 'Booked'])
+            total_participants += registered_users[trek.id]
         
-        result={'treks': response , 'registered_users': registered_users}
+        result={'treks': response , 'registered_users': registered_users, 'total_participants': total_participants}
         cache.set(cache_key, result)
         return make_response(jsonify(result), 200)
 api.add_resource(StaffDashboardAPI, '/staff')
