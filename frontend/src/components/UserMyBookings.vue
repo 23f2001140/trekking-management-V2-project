@@ -83,7 +83,7 @@ function CancelTrek() {
                             </div>
                             <div>
                             <h5 class="card-text badge" :class="StatusColor"> <strong>Status: </strong>{{ trek.status === 'Approved' ? 'Upcoming' : trek.status }}</h5>
-                            <p class="card-text"><strong> <i class="fa-solid fa-user-tie"></i> Assigned Staff: </strong>{{ trek.assigned_staff.fullname }}</p>
+                            <p class="card-text"><strong> <i class="fa-solid fa-user-tie"></i> Assigned Staff: </strong>{{ trek.assigned_staff ? trek.assigned_staff.fullname : 'Not Assigned Yet' }}</p>
                             <h5 class="card-text mb-3">
                                 <span class="badge" :class="DifficultyColor"><strong>Difficulty: </strong>{{ trek.difficulty }}</span>
                             </h5>

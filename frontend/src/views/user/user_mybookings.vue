@@ -12,6 +12,27 @@ const fullname = computed(() => auth.user? auth.user.fullname : '')
 const ongoing_bookings = ref([])
 const past_bookings = ref([])
 
+
+async function exportCSV() {
+  
+  const res = await fetch(`http://127.0.0.1:5000/api/user/export_csv`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+  })
+  const data = await res.json()
+  if (res.ok) {
+    flash.showFlash(data.message, 'success')
+    
+  }
+  else {
+    flash.showFlash(data.message, 'danger')
+    
+  }   
+}
+
 async function getBookings() {
   const res = await fetch(`http://127.0.0.1:5000/api/user/booking`, {
     method: 'GET',
@@ -64,6 +85,7 @@ async function CancelTrek(id) {
 <div>
     <h1><i class="fa-solid fa-user mt mt-4"></i> My Bookings
     <RouterLink :to="{name: 'user'}" class="btn btn-success mt-4 float-end"><i class="fa-solid fa-arrow-left"></i> Go Back </RouterLink>
+    <button class="btn btn-outline-success mt-4 float-end me-2" @click="exportCSV"> <i class="fa-solid fa-file-csv"></i> {{'Export History' }} </button>
     </h1>
     <p  class="text-muted">Hello, {{ fullname }} ! Here you can view your booking records.</p>
     <br>

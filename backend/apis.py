@@ -580,3 +580,13 @@ class ProfileUpdateAPI(Resource):
         return make_response(jsonify({'message': 'Profile updated successfully' , 'user': user.get_user()}), 200)
 
 api.add_resource(ProfileUpdateAPI, '/update_profile')
+
+class UserExportCSVAPI(Resource):
+    @user_required
+    def post(self):
+        from celery_app import export_user_bookings_csv
+        user_id = get_jwt_identity()
+        export_user_bookings_csv.delay(user_id)
+        return make_response(jsonify({'message': 'Export started. Check your email shortly.'}), 200)
+
+api.add_resource(UserExportCSVAPI, '/user/export_csv')
