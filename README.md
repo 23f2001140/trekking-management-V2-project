@@ -1,183 +1,280 @@
-# trekking-management-V2-project
-This is the Trekking management system app made with vuejs frontend and flask backend and sqlite database. In which user can book trek for themself and staff will be assigned to them as a guide . and a admin who manage all of treks and staff 
+# TrekCentral – Trekking Management System
 
-## Project Structure
-trekking-management-V2-project/
-├── backend/     ← Flask API, SQLite DB, Celery, Redis caching
-└── frontend/    ← Vue.js app
+TrekCentral is a full-stack trekking management application that allows users to explore and book treks, trekking staff to manage assigned treks, and administrators to manage the overall platform.
 
-AAll backend commands below are run **inside the `backend/` folder**.
-All frontend commands are run **inside the `frontend/` folder**.
+The application follows a **Vue.js frontend + Flask REST API backend** architecture, with role-based access control, JWT authentication, background task processing, caching, and automated email notifications.
+
+## Key Features
+
+### Authentication & User Management
+- User registration and login.
+- JWT-based authentication.
+- Role-based access for Admin, Trek Staff, and Trekker.
+- Profile management and password updates.
+- Account blacklisting and activation.
+
+### Admin Dashboard
+- Dashboard with user, staff, trek, and booking statistics.
+- Visual representation of booking and revenue data.
+- Create, update, and delete treks.
+- Approve and manage trekking staff.
+- Assign staff members to treks.
+- Manage users, staff, and bookings.
+
+### Trekker Features
+- Browse available treks and view trek details.
+- Book and cancel trek reservations.
+- View booking history.
+- Update profile information.
+- Export trekking history as a CSV file through email.
+
+### Trek Staff Features
+- View assigned treks.
+- Manage trek status.
+- Update available slots.
+- View registered and cancelled participants.
+
+### Background Processing & Notifications
+- Asynchronous task execution using Celery.
+- Redis as the message broker.
+- Scheduled daily reminders for users.
+- Scheduled monthly activity reports for administrators.
+- Automated HTML email notifications.
+- CSV report generation and email delivery with attachments.
+
+### Booking & Data Management
+- SQLAlchemy ORM for database operations.
+- Relational database models for users, treks, and bookings.
+- Prevention of duplicate bookings and overbooking.
+- Validation of booking and trek-related operations.
+- Redis-backed response caching.
 
 ---
 
-## Prerequisites
+## Technology Stack
 
-- Python 3.x
-- Node.js + npm
-- Redis (must be installed and available as `redis-server`)
-- Celery (installed via `requirements.txt`)
-- MailHog (for catching outgoing emails in development)
+### Frontend
+
+| Technology | Usage |
+|---|---|
+| Vue.js 3 | Frontend framework |
+| JavaScript (ES Modules) | Application logic |
+| Vue Composition API | Component logic and reactivity |
+| Vue Router | Client-side routing |
+| Pinia | State management |
+| HTML5 | Application structure |
+| CSS3 | Styling |
+| Bootstrap 5.3 | Responsive UI and components |
+| Bootstrap Icons / Font Awesome 7 | Iconography (Font Awesome is included) |
+| Chart.js | Dashboard charts and data visualisation |
+| Vite 8 | Development server and build tool |
+
+### Backend
+
+| Technology | Usage |
+|---|---|
+| Python | Backend programming language |
+| Flask 3 | Backend web framework |
+| Flask-RESTful | REST API development |
+| Flask-SQLAlchemy | Flask integration with SQLAlchemy |
+| SQLAlchemy 2 | ORM and database operations |
+| Flask-JWT-Extended | JWT authentication |
+| Flask-Caching | Application-level caching |
+| Flask-CORS | Cross-Origin Resource Sharing |
+| Werkzeug | Password hashing and utilities |
+| python-dotenv | Environment variable management |
+
+### Database, Caching & Background Tasks
+
+| Technology | Usage |
+|---|---|
+| SQLite | Relational database |
+| Redis | Message broker and caching backend |
+| Celery | Asynchronous background task processing |
+| Celery Beat | Periodic task scheduling |
+
+### Email & Data Processing
+
+| Technology | Usage |
+|---|---|
+| Python SMTP (`smtplib`) | Sending emails |
+| Python Email MIME | HTML emails and file attachments |
+| Python `csv` module | CSV report generation |
+| Python `datetime` | Date and time handling |
+| Celery `crontab` | Scheduled task configuration |
+
+### Development & Code Quality Tools
+
+| Tool | Usage |
+|---|---|
+| Node.js | JavaScript runtime |
+| npm | Package management |
+| ESLint | JavaScript and Vue linting |
+| Oxlint | Fast code linting |
+| Prettier | Code formatting |
+| Vite Vue Plugin | Vue support in Vite |
+| Vue DevTools Plugin | Vue development debugging |
+| Git & GitHub | Version control and source code management |
 
 ---
 
-## ⚠️ Important: Redis Must Be Running
+## Project Architecture
 
-This app uses **Redis** for caching (Flask-Caching) and as the **message broker for Celery**.
+```text
+TrekCentral/
+│
+├── backend/
+│   ├── app.py
+│   ├── apis.py
+│   ├── models.py
+│   ├── config.py
+│   ├── celery_app.py
+│   ├── mail.py
+│   ├── requirements.txt
+│   └── .env.sample
+│
+└── frontend/
+    ├── public/
+    ├── src/
+    │   ├── assets/
+    │   ├── components/
+    │   ├── views/
+    │   ├── stores/
+    │   ├── router/
+    │   ├── App.vue
+    │   └── main.js
+    ├── index.html
+    ├── package.json
+    └── vite.config.js
+```
 
-**Redis must be running BEFORE you start the Flask server.** If Redis is not running when you load the admin, user, or staff dashboards, those pages will fail.
+## Getting Started
 
-Always start Redis first, and keep it running in its own terminal the whole time you use the app.
+### Prerequisites
 
----
+Make sure you have the following installed:
 
-## Environment Setup
+- Python 3.10 or later
+- Node.js (22.18+ or 24.12+)
+- npm
+- Redis
+- requires a local SMTP service configured for localhost:1025.
 
-Before running the backend, copy the sample environment file and fill in your own values:
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/23f2001140/trekking-management-V2-project.git
+cd trekking-management-V2-project
+```
+
+### 2. Backend Setup
+
+Navigate to the backend directory:
 
 ```bash
 cd backend
-cp .env.sample .env       # Linux/Mac
-copy .env.sample .env     # Windows
 ```
 
-Then open `.env` and fill in your own values for:
-- `SECRET_KEY`
-- `JWT_SECRET_KEY`
-
-The other values in `.env.sample` (database URI, Flask config) can be left as-is unless you need to change them.
-
-## Setup & Running the App
-
-You'll need **6 terminals open at the same time**, each doing one job. Follow them in this order.
-
-### Terminal 1 — Backend Setup + Flask Server
-
-```bash
-cd backend
-```
-
-Create and activate a virtual environment (only needed the first time):
+Create and activate a virtual environment:
 
 ```bash
 python -m venv venv
 ```
 
-Activate it:
+On Linux/macOS:
 
 ```bash
-.\venv\Scripts\activate     # Windows
-source venv/bin/activate    # Linux/Mac
+source venv/bin/activate
 ```
 
-Install dependencies (only needed the first time, or when requirements.txt changes):
+On Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Install the dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Do NOT start Flask yet — first confirm Redis is running (Terminal 2 below). Once Redis is confirmed running, come back here and start Flask:**
+Create a `.env` file using the provided sample:
+
+```bash
+cp .env.sample .env
+```
+
+On Windows, you can copy the file manually or use:
+
+```powershell
+copy .env.sample .env
+```
+
+Configure the required environment variables in `.env`, including `SECRET_KEY` and `JWT_SECRET_KEY`.
+
+Start the Flask backend:
 
 ```bash
 flask run
 ```
 
-If you ever add a new package while working on the backend, update `requirements.txt`:
+### 3. Frontend Setup
 
-```bash
-pip freeze > requirements.txt
-```
-
----
-
-### Terminal 2 — Redis Server
-
-Open a new terminal:
-
-```bash
-cd backend
-redis-server
-```
-
-Leave this running. Confirm it started successfully 
-to check that Redis is running:
-
-```bash
-redis-cli ping
-```
-
-If you see `PONG`, Redis is running.
-
----
-
-### Terminal 3 — Celery Worker
-
-Open a new terminal:
-
-```bash
-cd backend
-.\venv\Scripts\activate     # Windows
-source venv/bin/activate    # Linux/Mac
-celery -A celery_app.celery worker --loglevel=info
-```
-
-> On Windows, if the worker throws errors related to the process pool, use:
-> `celery -A celery_app.celery worker --loglevel=info --pool=solo`
-
----
-
-### Terminal 4 — Celery Beat (scheduler)
-
-Open a new terminal:
-
-```bash
-cd backend
-.\venv\Scripts\activate     # Windows
-source venv/bin/activate    # Linux/Mac
-celery -A celery_app.celery beat --loglevel=info
-```
-
-This handles the daily reminder emails and the monthly admin report on schedule.
-
----
-
-### Terminal 5 — MailHog (catches outgoing emails)
-
-Open a new terminal and start MailHog however you normally run it, for example:
-
-```bash
-MailHog
-```
-
-MailHog's web UI (usually `http://localhost:8025`) is where you'll see all emails sent by the app (daily reminders, monthly reports, CSV export emails) — the app is configured to send mail to `localhost:1025`, which MailHog listens on.
-
----
-
-### Terminal 6 — Frontend (Vue.js)
-
-Open a new terminal:
+Open another terminal and navigate to the frontend directory:
 
 ```bash
 cd frontend
+```
+
+Install dependencies:
+
+```bash
 npm install
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-This starts the Vue dev server. Open the URL it prints (usually `http://localhost:5173`) in your browser.
+### 4. Start Redis
+
+Make sure the Redis server is running before using caching and background tasks.
+
+### 5. Start Celery Workers
+
+Open a separate terminal in the backend directory and activate the virtual environment.
+
+Start the Celery worker:
+
+```bash
+celery -A celery_app.celery worker --loglevel=info
+```
+
+Start Celery Beat for scheduled tasks:
+
+```bash
+celery -A celery_app.celery beat --loglevel=info
+```
 
 ---
 
-## Startup Order Summary
+## Demo Administrator Account
 
-1. Terminal 2 → Redis
-2. Terminal 1 → Flask (only after Redis is confirmed running)
-3. Terminal 3 → Celery worker
-4. Terminal 4 → Celery beat
-5. Terminal 5 → MailHog
-6. Terminal 6 → Frontend
+The application initialises a default administrator account when the database is created.
 
-## Default Admin Login
+| Field | Value |
+|---|---|
+| Email | `admin@gmail.com` |
+| Password | `admin123` |
 
-An admin account is auto-created on first run:
-- Email: `admin@gmail.com`
-- Password: `admin123`
+**Note:** These credentials are intended only for local demonstration. Change or disable the default account before using the application in a shared or deployed environment.
+
+---
+
+## Author
+
+**Anurag Bharti**
+
